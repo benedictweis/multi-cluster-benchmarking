@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+    name: nginx-server
+    namespace: nginx-wrk
+    annotations:
+        service.cilium.io/global: "true"
+spec:
+    selector:
+        app: nginx
+    ports:
+        - protocol: TCP
+          port: 80
+          targetPort: 80
+    type: ClusterIP

@@ -1,0 +1,15 @@
+---
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
+metadata:
+    name: docker-kind-network-pool
+    namespace: metallb-system
+spec:
+    addresses:
+        - 10.180.132.176-10.180.132.200
+---
+apiVersion: metallb.io/v1beta1
+kind: L2Advertisement
+metadata:
+    name: docker-kind-network-advertisement
+    namespace: metallb-system

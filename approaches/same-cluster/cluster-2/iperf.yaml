@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+    name: iperf-config
+    namespace: iperf
+data:
+    SERVER_ADDRESS: "iperf-server"
+    INITIAL_SLEEP: "10"

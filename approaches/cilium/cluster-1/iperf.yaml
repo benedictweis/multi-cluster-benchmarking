@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+    name: iperf-server
+    namespace: iperf
+    annotations:
+        service.cilium.io/global: "true"
+spec:
+    selector:
+        app: iperf-server
+    ports:
+        - protocol: TCP
+          port: 5201
+          targetPort: 5201
+    type: ClusterIP

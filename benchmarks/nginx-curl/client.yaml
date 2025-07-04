@@ -1,0 +1,44 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+    name: nginx-curl-client
+    namespace: nginx-curl
+spec:
+    template:
+        metadata:
+            labels:
+                app: nginx-curl-client
+        spec:
+            containers:
+                - name: nginx-curl-client
+                  image: curlimages/curl
+                  command:
+                      - "/bin/sh"
+                      - "-c"
+                      - >
+                          sleep ${INITIAL_SLEEP};
+                          for i in $(seq 1 10); do
+                            echo -n "Request $i: ";
+                            curl -o /dev/null --silent --show-error --fail -w "time_total=%{time_total}s\n" -H "Cache-Control: no-cache" -H "X-Unique: $(date)" -H "Connection: close" --http1.1 http://${SERVER_ADDRESS}:${SERVER_PORT};
+                            sleep 1;
+                          done
+                  env:
+                      - name: SERVER_ADDRESS
+                        valueFrom:
+                            configMapKeyRef:
+                                name: nginx-config
+                                key: SERVER_ADDRESS
+                      - name: SERVER_PORT
+                        valueFrom:
+                            configMapKeyRef:
+                                name: nginx-config
+                                key: SERVER_PORT
+
+                      - name: INITIAL_SLEEP
+                        valueFrom:
+                            configMapKeyRef:
+                                name: nginx-config
+                                key: INITIAL_SLEEP
+                                optional: true
+            restartPolicy: Never
+    backoffLimit: 4

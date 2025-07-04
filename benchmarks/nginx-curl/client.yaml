@@ -17,7 +17,7 @@ spec:
                       - "-c"
                       - >
                           sleep ${INITIAL_SLEEP};
-                          for i in $(seq 1 10); do
+                          for i in $(seq 1 500); do
                             echo -n "Request $i: ";
                             curl -o /dev/null --silent --show-error --fail -w "time_total=%{time_total}s\n" -H "Cache-Control: no-cache" -H "X-Unique: $(date)" -H "Connection: close" --http1.1 http://${SERVER_ADDRESS}:${SERVER_PORT};
                             sleep 1;

@@ -56,8 +56,8 @@ function benchmark_approach() {
         run_if_exists ./"$APPROACHES_DIR"/"$approach"/"pre-$benchmark".sh
     else
         info "[$PROVIDER $approach $benchmark] Creating namespace '$benchmark' in both clusters"
-        kubectl create namespace "$benchmark" --context "$CLUSTER_1_CONTEXT"
-        kubectl create namespace "$benchmark" --context "$CLUSTER_2_CONTEXT"
+        kubectl create namespace "$benchmark" --context "$CLUSTER_1_CONTEXT" --dry-run=client -o yaml | kubectl apply -f - --context "$CLUSTER_1_CONTEXT"
+        kubectl create namespace "$benchmark" --context "$CLUSTER_2_CONTEXT" --dry-run=client -o yaml | kubectl apply -f - --context "$CLUSTER_2_CONTEXT"
     fi
 
     info "[$PROVIDER $approach $benchmark] Deploying benchmark"

@@ -9,6 +9,7 @@ docker run -it \
 DATE=$(date +%Y%m%d%H%M%S)
 mkdir -p "./$RESULTS_DIR/$DATE"
 docker cp "mbench:/multi-cluster-benchmarking/$RESULTS_DIR/." "./$RESULTS_DIR/$DATE"
+docker cp "mbench:/multi-cluster-benchmarking/$KUBECONFIG_FILE" "./$KUBECONFIG_FILE"
 if [ -z "$(ls -A "./$RESULTS_DIR/$DATE")" ]; then
     rm -rf "./$RESULTS_DIR/$DATE"
 fi

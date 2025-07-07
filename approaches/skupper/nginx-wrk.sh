@@ -27,3 +27,6 @@ skupper link create "$CLUSTER_2_TOKEN_LOCATION" --context "$CLUSTER_1_CONTEXT"
 
 approachinfo "Exposing nginx-server"
 skupper expose deployment/nginx-server --port 80 --context "$CLUSTER_1_CONTEXT"
+
+kubectl config set-context "$CLUSTER_1_CONTEXT" --namespace=default
+kubectl config set-context "$CLUSTER_2_CONTEXT" --namespace=default

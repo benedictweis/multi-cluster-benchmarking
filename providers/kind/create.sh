@@ -79,5 +79,5 @@ kubectl config view --flatten >"../../$KUBECONFIG_FILE"
 info "[$PROVIDER] Adjusting kubeconfig API server addresses"
 CLUSTER_1_APISERVER_IP=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' "$CLUSTER_1_NAME-control-plane")
 CLUSTER_2_APISERVER_IP=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' "$CLUSTER_2_NAME-control-plane")
-sed -i '' "s|127.0.0.1:6441|${CLUSTER_1_APISERVER_IP}:6443|g" "../../$KUBECONFIG_FILE"
-sed -i '' "s|127.0.0.1:6442|${CLUSTER_2_APISERVER_IP}:6443|g" "../../$KUBECONFIG_FILE"
+sed -i "s|127.0.0.1:6441|${CLUSTER_1_APISERVER_IP}:6443|g" "../../$KUBECONFIG_FILE"
+sed -i "s|127.0.0.1:6442|${CLUSTER_2_APISERVER_IP}:6443|g" "../../$KUBECONFIG_FILE"

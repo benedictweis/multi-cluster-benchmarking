@@ -196,7 +196,7 @@ class BarChartGenerator(BenchmarkOutputGenerator):
         bars = plt.bar(labels, plot_data, color=plt.cm.viridis(np.linspace(0, 1, len(plot_data))), width=0.3)
 
         plt.title(benchmark_runs.plot_name + " (Average)", fontsize=10)
-        plt.ylabel(f'Average {benchmark_runs.measurement} (in {benchmark_runs.unit})', fontsize=8)
+        plt.ylabel(f'{benchmark_runs.measurement} (in {benchmark_runs.unit})', fontsize=8)
         plt.xticks(rotation=90, fontsize=8)
 
         plt.gca().yaxis.grid(True, which='major', linestyle='-', linewidth=0.7, color='gray', alpha=0.5)

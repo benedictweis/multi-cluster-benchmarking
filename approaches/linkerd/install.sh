@@ -31,14 +31,15 @@ approachinfo "Installing Linkerd crds"
 linkerd install --crds | kubectl apply --context "$CLUSTER_1_CONTEXT" -f -
 linkerd install --crds | kubectl apply --context "$CLUSTER_2_CONTEXT" -f -
 
+approachinfo "Installing Linkerd in cluster-2"
 # Install in second cluster first because it is configured with the other
 linkerd install \
     --identity-trust-anchors-file "$ROOT_CERT_FILE" \
     --identity-issuer-certificate-file "$ISSUER_CERT_FILE" \
     --identity-issuer-key-file "$ISSUER_KEY_FILE" |
     kubectl apply --context "$CLUSTER_2_CONTEXT" -f -
-approachinfo "Installing Linkerd"
-linkerd install \
+approachinfo "Installing Linkerd in cluster-1"
+linkerd upgrade \
     --identity-trust-anchors-file "$ROOT_CERT_FILE" \
     --identity-issuer-certificate-file "$ISSUER_CERT_FILE" \
     --identity-issuer-key-file "$ISSUER_KEY_FILE" |

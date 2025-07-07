@@ -118,8 +118,8 @@ function benchmark_approach() {
         run_if_exists ./"$APPROACHES_DIR"/"$approach"/"post-$benchmark".sh
     else
         info "[$PROVIDER $approach $benchmark] Deleting namespace '$benchmark' in both clusters"
-        kubectl delete namespace "$benchmark" --context "$CLUSTER_1_CONTEXT"
-        kubectl delete namespace "$benchmark" --context "$CLUSTER_2_CONTEXT"
+        kubectl delete namespace "$benchmark" --context "$CLUSTER_1_CONTEXT" --ignore-not-found
+        kubectl delete namespace "$benchmark" --context "$CLUSTER_2_CONTEXT" --ignore-not-found
     fi
 }
 

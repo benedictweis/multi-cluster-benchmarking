@@ -31,35 +31,20 @@ for CLUSTER_NAME in "${CLUSTER_1_NAME}" "${CLUSTER_2_NAME}"; do
     sleep 5
 
     info "[$PROVIDER $CLUSTER_NAME] Configuring l2 advertisement."
-    kubectl apply -f "metallb-l2-advertisement-${CLUSTER_NAME}.yaml"
+    export NETWORK_PREFIX
+    if [[ "$CLUSTER_NAME" == "$CLUSTER_1_NAME" ]]; then
+        export START_GROUP=150
+        export END_GROUP=175
+    else
+        export START_GROUP=176
+        export END_GROUP=200
+    fi
+    envsubst <metallb-l2-advertisement.template.yaml | kubectl apply -f -
 
     info "[$PROVIDER $CLUSTER_NAME] Deploying metrics server"
     kubectl delete -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml --ignore-not-found
     kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
-    kubectl patch deployment metrics-server -n kube-system --type='json' -p='[
-{
-"op": "add",
-"path": "/spec/template/spec/hostNetwork",
-"value": true
-},
-{
-"op": "replace",
-"path": "/spec/template/spec/containers/0/args",
-"value": [
-"--cert-dir=/tmp",
-"--secure-port=4443",
-"--kubelet-preferred-address-types=InternalIP,ExternalIP,Hostname",
-"--kubelet-use-node-status-port",
-"--metric-resolution=15s",
-"--kubelet-insecure-tls"
-]
-},
-{
-"op": "replace",
-"path": "/spec/template/spec/containers/0/ports/0/containerPort",
-"value": 4443
-}
-]'
+    kubectl patch deployment metrics-server -n kube-system --type='json' --patch-file=./metrics-server-patch.json
     info "[$PROVIDER $CLUSTER_NAME] Waiting for metrics server deployment to be ready"
     kubectl -n kube-system wait --for=condition=available --timeout=90s deployment/metrics-server
 done
@@ -79,5 +64,11 @@ kubectl config view --flatten >"../../$KUBECONFIG_FILE"
 info "[$PROVIDER] Adjusting kubeconfig API server addresses"
 CLUSTER_1_APISERVER_IP=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' "$CLUSTER_1_NAME-control-plane")
 CLUSTER_2_APISERVER_IP=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' "$CLUSTER_2_NAME-control-plane")
-sed -i "s|127.0.0.1:6441|${CLUSTER_1_APISERVER_IP}:6443|g" "../../$KUBECONFIG_FILE"
-sed -i "s|127.0.0.1:6442|${CLUSTER_2_APISERVER_IP}:6443|g" "../../$KUBECONFIG_FILE"
+# Detect OS and set proper sed command
+if [[ $OSTYPE == darwin* ]]; then
+    sed -i '' "s|127.0.0.1:6441|${CLUSTER_1_APISERVER_IP}:6443|g" "../../$KUBECONFIG_FILE"
+    sed -i '' "s|127.0.0.1:6442|${CLUSTER_2_APISERVER_IP}:6443|g" "../../$KUBECONFIG_FILE"
+else
+    sed -i "s|127.0.0.1:6441|${CLUSTER_1_APISERVER_IP}:6443|g" "../../$KUBECONFIG_FILE"
+    sed -i "s|127.0.0.1:6442|${CLUSTER_2_APISERVER_IP}:6443|g" "../../$KUBECONFIG_FILE"
+fi

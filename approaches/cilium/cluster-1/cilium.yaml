@@ -15,10 +15,10 @@ clustermesh:
             - name: cluster-2
               port: 2379
               ips:
-                  - 172.18.0.179
+                  - ${NETWORK_PREFIX}.179
     apiserver:
         service:
             type: LoadBalancer
-            loadBalancerIP: 172.18.0.159
+            loadBalancerIP: ${NETWORK_PREFIX}.159
         kvstoremesh:
             enabled: false

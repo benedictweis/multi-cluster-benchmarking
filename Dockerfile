@@ -67,7 +67,8 @@ RUN apt-get install -y \
     kubectl \ 
     helm \
     step-cli \
-    jq
+    jq \
+    gettext
 
 WORKDIR /multi-cluster-benchmarking
 

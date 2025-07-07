@@ -16,7 +16,10 @@ helm repo add cilium "${HELM_REPO_URL}"
 helm repo update
 
 approachinfo "Installing Cilium on cluster-1"
-helm upgrade --install --reset-values -n kube-system cilium cilium/cilium -f "${CLUSTER_1_NAME}/${CILIUM_HELM_VALUES_FILE}" --kube-context "${CLUSTER_1_CONTEXT}"
+CILIUM_HELM_VALUES_FILE_1=$(mktemp)
+export NETWORK_PREFIX
+envsubst <"${CLUSTER_1_NAME}/${CILIUM_HELM_VALUES_FILE}" >"${CILIUM_HELM_VALUES_FILE_1}"
+helm upgrade --install --reset-values -n kube-system cilium cilium/cilium -f "${CILIUM_HELM_VALUES_FILE_1}" --kube-context "${CLUSTER_1_CONTEXT}"
 
 approachinfo "Setting up shared CA"
 kubectl --context="${CLUSTER_2_CONTEXT}" delete secret -n kube-system cilium-ca --ignore-not-found
@@ -24,7 +27,10 @@ kubectl --context="${CLUSTER_1_CONTEXT}" get secret -n kube-system cilium-ca -o 
     kubectl --context "${CLUSTER_2_CONTEXT}" create -f -
 
 approachinfo "Installing Cilium on cluster-2"
-helm upgrade --install --reset-values -n kube-system cilium cilium/cilium -f "${CLUSTER_2_NAME}/${CILIUM_HELM_VALUES_FILE}" --kube-context "${CLUSTER_2_CONTEXT}"
+CILIUM_HELM_VALUES_FILE_2=$(mktemp)
+export NETWORK_PREFIX
+envsubst <"${CLUSTER_2_NAME}/${CILIUM_HELM_VALUES_FILE}" >"${CILIUM_HELM_VALUES_FILE_2}"
+helm upgrade --install --reset-values -n kube-system cilium cilium/cilium -f "${CILIUM_HELM_VALUES_FILE_2}" --kube-context "${CLUSTER_2_CONTEXT}"
 
 approachinfo "Restarting all Cilium pods in cluster-2"
 kubectl --context="${CLUSTER_2_CONTEXT}" -n kube-system delete pod -l k8s-app=cilium

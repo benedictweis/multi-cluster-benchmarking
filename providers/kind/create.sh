@@ -28,6 +28,7 @@ for CLUSTER_NAME in "${CLUSTER_1_NAME}" "${CLUSTER_2_NAME}"; do
         --for=condition=ready pod \
         --selector=component=controller \
         --timeout=90s
+    sleep 5
 
     info "[$PROVIDER $CLUSTER_NAME] Configuring l2 advertisement."
     kubectl apply -f "metallb-l2-advertisement-${CLUSTER_NAME}.yaml"

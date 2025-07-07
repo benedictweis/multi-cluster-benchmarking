@@ -179,10 +179,11 @@ class BoxPlotGenerator(BenchmarkOutputGenerator):
         plt.ylabel(f'{benchmark_runs.measurement} [{benchmark_runs.unit}]', fontsize=8)
         plt.xticks(range(1, len(labels) + 1), labels, rotation=90, fontsize=8)
 
+        plt.gca().yaxis.grid(True, which='major', linestyle='-', linewidth=0.7, color='gray', alpha=0.5)
+        plt.gca().set_axisbelow(True)
+
         plt.tight_layout(pad=1.0)
-
         plt.savefig(output_file, dpi=300)
-
         plt.close()
 
 
@@ -197,6 +198,9 @@ class BarChartGenerator(BenchmarkOutputGenerator):
         plt.title(benchmark_runs.plot_name + " (Average)", fontsize=10)
         plt.ylabel(f'Average {benchmark_runs.measurement} (in {benchmark_runs.unit})', fontsize=8)
         plt.xticks(rotation=90, fontsize=8)
+
+        plt.gca().yaxis.grid(True, which='major', linestyle='-', linewidth=0.7, color='gray', alpha=0.5)
+        plt.gca().set_axisbelow(True)
 
         plt.tight_layout(pad=1.0)
         plt.savefig(output_file, dpi=300)

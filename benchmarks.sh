@@ -35,7 +35,7 @@ function clusters_create() {
 
 function clusters_destroy() {
     info "[$PROVIDER] Destroying clusters"
-    run_if_exists "./$PROVIDERS_DIR/$PROVIDER/destroy.sh"
+    run_if_exists "./$PROVIDERS_DIR/$PROVIDER/destroy.sh" strict
     rm -rf "$CONTEXT_1_FILE" "$CONTEXT_2_FILE" "$KUBECONFIG_FILE"
 }
 
@@ -141,11 +141,11 @@ function benchmarks() {
 function plot() {
     local input_folder="$1"
     info "[$BENCHMARKS] Preparing plot"
+    source ./plotting/.venv/bin/activate
     for benchmark in $BENCHMARKS; do
         for metric in "bench" "memory" "cpu"; do
             info "[$benchmark $metric] Plotting results"
             mkdir -p plotting/results
-            source plotting/.venv/bin/activate
             (cd ./plotting && python3 plots.py "../$input_folder" "$benchmark" "$metric" "$RESULTS_DIR")
         done
     done

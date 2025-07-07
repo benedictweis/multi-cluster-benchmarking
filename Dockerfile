@@ -37,6 +37,24 @@ RUN curl --fail -LS "https://github.com/liqotech/liqo/releases/download/v1.0.0/l
 RUN curl --fail -LS "https://github.com/skupperproject/skupper/releases/download/1.9.2/skupper-cli-1.9.2-linux-amd64.tgz" | tar -xz &&\ 
     install -o root -g root -m 0755 skupper /usr/local/bin/skupper
 
+RUN ARCH=$(uname -m) && \
+    if [ "$ARCH" = "x86_64" ]; then \
+    curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.29.0/kind-linux-amd64; \
+    elif [ "$ARCH" = "aarch64" ]; then \
+    curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.29.0/kind-linux-arm64; \
+    fi && \
+    chmod +x ./kind && \
+    mv ./kind /usr/local/bin/kind
+
+RUN curl -fsSL https://download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc && \
+    chmod a+r /etc/apt/keyrings/docker.asc && \
+    echo \
+    "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian \
+    $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
+    tee /etc/apt/sources.list.d/docker.list > /dev/null && \
+    apt-get update && \
+    apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+
 RUN curl -Ls https://get.submariner.io | bash
 ENV PATH="$PATH:~/.local/bin"
 

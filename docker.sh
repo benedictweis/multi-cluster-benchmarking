@@ -3,7 +3,9 @@
 source config.cfg
 
 docker build -t mbench .
-docker run -it --network kind --name mbench mbench "$@"
+docker run -it \
+    -v /var/run/docker.sock:/var/run/docker.sock \
+    --network kind --name mbench mbench "$@"
 DATE=$(date +%Y%m%d%H%M%S)
 mkdir -p "./$RESULTS_DIR/$DATE"
 docker cp "mbench:/multi-cluster-benchmarking/$RESULTS_DIR/." "./$RESULTS_DIR/$DATE"

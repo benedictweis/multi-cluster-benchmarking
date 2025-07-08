@@ -2,10 +2,16 @@
 
 source config.cfg
 
+if [[ $OSTYPE == darwin* ]]; then
+    DOCKER_NETWORK="kind"
+else
+    DOCKER_NETWORK="host"
+fi
+
 docker build -t mbench .
 docker run -it \
     -v /var/run/docker.sock:/var/run/docker.sock \
-    --network kind --name mbench mbench "$@"
+    --network $DOCKER_NETWORK --name mbench mbench "$@"
 DATE=$(date +%Y%m%d%H%M%S)
 mkdir -p "./$RESULTS_DIR/$DATE"
 docker cp "mbench:/multi-cluster-benchmarking/$RESULTS_DIR/." "./$RESULTS_DIR/$DATE"

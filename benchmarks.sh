@@ -4,11 +4,12 @@
 
 set -o errexit
 set -o nounset
-set -o pipefail
 if [[ "${TRACE-0}" == "1" ]]; then set -o xtrace; fi
 
 source helper.sh
 source config.cfg
+
+set -o pipefail
 
 BENCHMARKS_N_DIV_10=$((BENCHMARKS_N / 10))
 

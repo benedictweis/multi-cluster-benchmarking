@@ -126,7 +126,7 @@ class MemoryBenchmarkParser(BenchmarkDataParser):
                     mem_str = parts[3]
                     mem_val = float(mem_str.replace("Mi", ""))
                     aggregated_memory += mem_val
-                benchmarks.append(Benchmark(name=os.path.basename(filename), data=data))
+                benchmarks.append(Benchmark(name=os.path.basename(filename), data=[max(data)]))
 
         return BenchmarkRuns(
             plot_name='Peak Memory Usage During Benchmark',
@@ -153,7 +153,7 @@ class CPUBenchmarkParser(BenchmarkDataParser):
                     cpu_str = parts[1]
                     cpu_val = float(cpu_str.replace("m", ""))
                     aggregated_cpu += cpu_val
-                benchmarks.append(Benchmark(name=os.path.basename(filename), data=data))
+                benchmarks.append(Benchmark(name=os.path.basename(filename), data=[max(data)]))
 
         return BenchmarkRuns(
             plot_name='CPU Seconds Used During Benchmark',
@@ -195,7 +195,7 @@ class BoxPlotGenerator(BenchmarkOutputGenerator):
 
 class BarChartGenerator(BenchmarkOutputGenerator):
     def generate_plot(self, benchmark_runs: BenchmarkRuns, output_file: str):
-        plot_data = [np.mean(benchmark.data) for benchmark in benchmark_runs.benchmarks]
+        plot_data = [benchmark_runs.benchmarks[0].data[0]]
         labels = [benchmark.name for benchmark in benchmark_runs.benchmarks]
 
         plt.figure(figsize=(10, 5))

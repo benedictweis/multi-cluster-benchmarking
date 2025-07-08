@@ -21,6 +21,7 @@ class BenchmarkRuns:
     plot_name: str
     measurement: str
     unit: str
+    better: str
     benchmarks: list[Benchmark]
 
 
@@ -51,6 +52,7 @@ class NginxCurlBenchmarkParser(BenchmarkDataParser):
             plot_name='Nginx Curl Benchmark',
             measurement='Round Trip Time (RTT)',
             unit='ms',
+            better='lower',
             benchmarks=benchmarks
         )
 
@@ -79,8 +81,9 @@ class NginxWrkBenchmarkParser(BenchmarkDataParser):
 
         return BenchmarkRuns(
             plot_name='Nginx wrk Benchmark',
-            measurement='Average Latency',
+            measurement='Latency',
             unit='ms',
+            better='lower',
             benchmarks=benchmarks
         )
 
@@ -102,6 +105,7 @@ class IperfBenchmarkParser(BenchmarkDataParser):
             plot_name='Iperf Network Throughput',
             measurement='Throughput',
             unit='Gbit/s',
+            better='higher',
             benchmarks=benchmarks
         )
 
@@ -125,9 +129,10 @@ class MemoryBenchmarkParser(BenchmarkDataParser):
                 benchmarks.append(Benchmark(name=os.path.basename(filename), data=data))
 
         return BenchmarkRuns(
-            plot_name='Memory Usage',
-            measurement='Total Memory',
+            plot_name='Peak Memory Usage During Benchmark',
+            measurement='Peak Memory',
             unit='Mi',
+            better='lower',
             benchmarks=benchmarks
         )
 
@@ -151,9 +156,10 @@ class CPUBenchmarkParser(BenchmarkDataParser):
                 benchmarks.append(Benchmark(name=os.path.basename(filename), data=data))
 
         return BenchmarkRuns(
-            plot_name='Cpu Usage (Average)',
-            measurement='CPU Cores',
+            plot_name='CPU Seconds Used During Benchmark',
+            measurement='CPU Seconds',
             unit='m',
+            better='lower',
             benchmarks=benchmarks
         )
 
@@ -169,17 +175,17 @@ class BoxPlotGenerator(BenchmarkOutputGenerator):
         plot_data = [benchmark.data for benchmark in benchmark_runs.benchmarks]
         labels = [benchmark.name for benchmark in benchmark_runs.benchmarks]
 
-        plt.figure(figsize=(10, 10))
-        box = plt.boxplot(plot_data, vert=True, patch_artist=True, widths=0.3, showfliers=False)
+        plt.figure(figsize=(10, 5))
+        box = plt.boxplot(plot_data, vert=False, patch_artist=True, widths=0.8, showfliers=False)
         colors = plt.cm.viridis(np.linspace(0, 1, len(plot_data)))
         for patch, color in zip(box['boxes'], colors):
             patch.set_facecolor(color)
 
         plt.title(benchmark_runs.plot_name, fontsize=10)
-        plt.ylabel(f'{benchmark_runs.measurement} [{benchmark_runs.unit}]', fontsize=8)
-        plt.xticks(range(1, len(labels) + 1), labels, rotation=90, fontsize=8)
+        plt.xlabel(f'{benchmark_runs.measurement} [{benchmark_runs.unit}] ({benchmark_runs.better} is better)', fontsize=8)
+        plt.yticks(range(1, len(labels) + 1), labels, fontsize=8)
 
-        plt.gca().yaxis.grid(True, which='major', linestyle='-', linewidth=0.7, color='gray', alpha=0.5)
+        plt.gca().xaxis.grid(True, which='major', linestyle='-', linewidth=0.7, color='gray', alpha=0.5)
         plt.gca().set_axisbelow(True)
 
         plt.tight_layout(pad=1.0)
@@ -192,14 +198,14 @@ class BarChartGenerator(BenchmarkOutputGenerator):
         plot_data = [np.mean(benchmark.data) for benchmark in benchmark_runs.benchmarks]
         labels = [benchmark.name for benchmark in benchmark_runs.benchmarks]
 
-        plt.figure(figsize=(10, 10))
-        bars = plt.bar(labels, plot_data, color=plt.cm.viridis(np.linspace(0, 1, len(plot_data))), width=0.3)
+        plt.figure(figsize=(10, 5))
+        bars = plt.barh(labels, plot_data, color=plt.cm.viridis(np.linspace(0, 1, len(plot_data))), height=0.8)
 
-        plt.title(benchmark_runs.plot_name + " (Average)", fontsize=10)
-        plt.ylabel(f'{benchmark_runs.measurement} (in {benchmark_runs.unit})', fontsize=8)
-        plt.xticks(rotation=90, fontsize=8)
+        plt.title(benchmark_runs.plot_name, fontsize=10)
+        plt.xlabel(f'{benchmark_runs.measurement} (in {benchmark_runs.unit}) ({benchmark_runs.better} is better)', fontsize=8)
+        plt.yticks(fontsize=8)
 
-        plt.gca().yaxis.grid(True, which='major', linestyle='-', linewidth=0.7, color='gray', alpha=0.5)
+        plt.gca().xaxis.grid(True, which='major', linestyle='-', linewidth=0.7, color='gray', alpha=0.5)
         plt.gca().set_axisbelow(True)
 
         plt.tight_layout(pad=1.0)
@@ -236,7 +242,7 @@ def get_parser_generator(benchmark_name: str, metrics_to_get: str) -> tuple[Benc
                 case "nginx-curl":
                     return NginxCurlBenchmarkParser(), BoxPlotGenerator()
                 case "nginx-wrk":
-                    return NginxWrkBenchmarkParser(), BarChartGenerator()
+                    return NginxWrkBenchmarkParser(), BoxPlotGenerator()
                 case "iperf":
                     return IperfBenchmarkParser(), BoxPlotGenerator()
                 case _:
@@ -276,7 +282,23 @@ def main():
     benchmark_runs = benchmark_parser.parse(benchmark_files)
     logging.info(f"Parsed {len(benchmark_runs.benchmarks)} benchmarks for {benchmark_runs.plot_name}")
 
-    benchmark_runs.benchmarks.sort(key=lambda b: b.name)
+    if metrics_to_get == "bench":
+        for benchmark in benchmark_runs.benchmarks:
+            for entry in order:
+                if entry in benchmark.name:
+                    benchmark.name = entry
+                    break
+
+        def sort_key(benchmark):
+            for idx, entry in enumerate(order):
+                if benchmark.name == entry:
+                    return idx
+            return len(order)
+
+        benchmark_runs.benchmarks.sort(key=sort_key)
+        benchmark_runs.benchmarks.reverse()
+    else:
+        benchmark_runs.benchmarks.sort(key=lambda x: x.name)
 
     current_time = datetime.now().strftime("%Y%m%d%H%M%S")
 
@@ -294,6 +316,21 @@ def main():
 
 
 logger = logging.getLogger(__name__)
+
+order = [
+    "same-cluster",
+    "load-balancer",
+    "cilium",
+    "calico",
+    "istio",
+    "linkerd",
+    "nss",
+    "kuma",
+    "skupper",
+    "submariner",
+    "liqo",
+    "cluster-link",
+]
 
 if __name__ == "__main__":
     logging.basicConfig(format="%(asctime)s %(levelname)s %(message)s", level=logging.INFO)

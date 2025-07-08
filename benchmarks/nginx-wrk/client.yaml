@@ -17,7 +17,9 @@ spec:
                       - "-c"
                       - >
                           sleep ${INITIAL_SLEEP};
-                          wrk -t12 -c400 -d500s http://${SERVER_ADDRESS}:${SERVER_PORT};
+                          for i in $(seq 1 <<BENCHMARKS_N_DIV_10>>); do
+                              wrk -t12 -c400 -d10s http://${SERVER_ADDRESS}:${SERVER_PORT};
+                          done
                   env:
                       - name: SERVER_ADDRESS
                         valueFrom:

@@ -10,6 +10,8 @@ if [[ "${TRACE-0}" == "1" ]]; then set -o xtrace; fi
 source helper.sh
 source config.cfg
 
+BENCHMARKS_N_DIV_10=$((BENCHMARKS_N / 10))
+
 function show_help() {
     echo "Usage: $0 <command>"
     echo ""
@@ -62,7 +64,7 @@ function benchmark_approach() {
 
     info "[$PROVIDER $approach $benchmark] Deploying benchmark"
     apply_if_exists "$BENCHMARKS_DIR/$benchmark/server.yaml" "$CLUSTER_1_CONTEXT" strict
-    apply_if_exists "$BENCHMARKS_DIR/$benchmark/client.yaml" "$CLUSTER_2_CONTEXT" strict
+    apply_if_exists "$BENCHMARKS_DIR/$benchmark/client.yaml" "$CLUSTER_2_CONTEXT" strict BENCHMARKS_N="$BENCHMARKS_N" BENCHMARKS_N_DIV_10="$BENCHMARKS_N_DIV_10"
 
     info "[$PROVIDER $approach $benchmark] Customizing benchmark"
     apply_if_exists "$APPROACHES_DIR/$approach/$CLUSTER_1_NAME/$benchmark.yaml" "$CLUSTER_1_CONTEXT"
@@ -111,7 +113,7 @@ function benchmark_approach() {
 
     info "[$PROVIDER $approach $benchmark] Undeploying benchmark"
     delete_if_exists "$BENCHMARKS_DIR/$benchmark/server.yaml" "$CLUSTER_1_CONTEXT" strict
-    delete_if_exists "$BENCHMARKS_DIR/$benchmark/client.yaml" "$CLUSTER_2_CONTEXT" strict
+    delete_if_exists "$BENCHMARKS_DIR/$benchmark/client.yaml" "$CLUSTER_2_CONTEXT" strict BENCHMARKS_N="$BENCHMARKS_N" BENCHMARKS_N_DIV_10="$BENCHMARKS_N_DIV_10"
 
     if [[ -f ./"$APPROACHES_DIR"/"$approach"/"post-$benchmark".sh ]]; then
         info "[$PROVIDER $approach $benchmark] Executing custom post script"
@@ -173,9 +175,17 @@ function apply_if_exists() {
     local file_name="$1"
     local context="${2}"
     local mode="${3-}"
+    local replace_vars=("${@:4}")
     if [[ -f "$file_name" ]]; then
         if [[ "${DRY_RUN-0}" != "1" ]]; then
-            kubectl apply -f "$file_name" --context "$context"
+            local content
+            content=$(<"$file_name")
+            for var in "${replace_vars[@]}"; do
+                key="${var%%=*}"
+                value="${var#*=}"
+                content="${content//<<$key>>/$value}"
+            done
+            echo "$content" | kubectl apply -f - --context "$context"
         else
             info "DRY RUN: Would apply file '$file_name' with context '$context'"
         fi
@@ -192,7 +202,14 @@ function delete_if_exists() {
     local mode="${3-}"
     if [[ -f "$file_name" ]]; then
         if [[ "${DRY_RUN-0}" != "1" ]]; then
-            kubectl delete -f "$file_name" --context "$context" --ignore-not-found
+            local content
+            content=$(<"$file_name")
+            for var in "${replace_vars[@]}"; do
+                key="${var%%=*}"
+                value="${var#*=}"
+                content="${content//<<$key>>/$value}"
+            done
+            echo "$content" | kubectl delete -f - --context "$context" --ignore-not-found
         else
             info "DRY RUN: Would delete file '$file_name' with context '$context'"
         fi

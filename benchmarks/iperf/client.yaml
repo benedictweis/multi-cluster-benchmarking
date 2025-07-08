@@ -17,7 +17,7 @@ spec:
                       - "-c"
                       - >
                           sleep ${INITIAL_SLEEP};
-                          iperf3 -c $SERVER_ADDRESS -J -t 500
+                          iperf3 -c $SERVER_ADDRESS -J -t <<BENCHMARKS_N>>
                   env:
                       - name: SERVER_ADDRESS
                         valueFrom:

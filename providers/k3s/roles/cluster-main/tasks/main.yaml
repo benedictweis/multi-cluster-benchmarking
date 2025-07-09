@@ -1,0 +1,29 @@
+- name: Install git on the host
+  become: true
+  package:
+    name: git
+    state: present
+
+- name: Clone multi-cluster-benchmarking repository into home directory
+  git:
+    repo: https://github.com/benedictweis/multi-cluster-benchmarking
+    dest: "{{ ansible_env.HOME }}/multi-cluster-benchmarking"
+    clone: yes
+    update: yes
+
+- name: Copy kubeconfig_instance_1.yaml to cloned repo
+  copy:
+    src: ./kubeconfig_instance_1.yaml
+    dest: "{{ ansible_env.HOME }}/multi-cluster-benchmarking/kubeconfig_instance_1.yaml"
+
+- name: Copy kubeconfig_instance_2.yaml to cloned repo
+  copy:
+    src: ./kubeconfig_instance_2.yaml
+    dest: "{{ ansible_env.HOME }}/multi-cluster-benchmarking/kubeconfig_instance_2.yaml"
+
+- name: Run the finish-setup.sh script and show its output
+  shell: |
+    cd "{{ ansible_env.HOME }}/multi-cluster-benchmarking/providers/k3s"
+    ./finish-setup.sh
+  args:
+    executable: /bin/bash

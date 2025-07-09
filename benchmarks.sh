@@ -29,6 +29,7 @@ function show_help() {
 function clean_results() {
     info "[$BENCHMARKS] Cleaning results"
     rm -rf "$RESULTS_DIR"
+    rm -rf plotting/"$RESULTS_DIR"
 }
 
 function clusters_create() {
@@ -84,7 +85,7 @@ function benchmark_approach() {
             read -p "Press key to continue.. " -n1 -s
             echo
         else
-            sleep 1
+            sleep 5
             kubectl wait --for=condition=Ready pod -n "$benchmark" -l "$LABEL" --context "$CLUSTER_2_CONTEXT" --timeout=20s
             while true; do
                 sleep 1

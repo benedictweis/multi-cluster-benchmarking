@@ -18,7 +18,7 @@ if [[ $SET_NETWORK_PREFIX == "auto" ]]; then
         if [ -z "$NETWORK_PREFIX" ]; then
             NETWORK_PREFIX=$(docker network inspect -f '{{(index .IPAM.Config 1).Gateway}}' kind | cut -d '.' -f 1-3)
         fi
-        info "Docker network 'kind' exists, using ist network prefix $NETWORK_PREFIX"
+        info "Docker network 'kind' exists, using its network prefix $NETWORK_PREFIX"
     else
         NETWORK_PREFIX="172.17.0"
         info "Docker network 'kind' does not exist, using default network prefix $NETWORK_PREFIX"

@@ -1,0 +1,75 @@
+- name: Download Helm install script
+  get_url:
+    url: https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+    dest: /tmp/get_helm.sh
+    mode: "0755"
+
+- name: Install Helm
+  shell: /tmp/get_helm.sh
+  args:
+    creates: /usr/local/bin/helm
+
+- name: Ensure Helm is installed
+  command: helm version
+  register: helm_version
+  changed_when: false
+
+- name: Set K3s install options
+  set_fact:
+    install_k3s_exec: "--disable-network-policy --disable cni --flannel-backend=none"
+
+- name: Install K3s with custom options
+  shell: |
+    curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="{{ install_k3s_exec }}" sh -
+  args:
+    executable: /bin/bash
+
+- name: Install or upgrade Cilium via Helm
+  shell: |
+    sudo helm repo add cilium https://helm.cilium.io/ --kubeconfig /etc/rancher/k3s/k3s.yaml
+    helm repo update --kubeconfig /etc/rancher/k3s/k3s.yaml
+    sleep 10
+    sudo helm upgrade --install --reset-values --version 1.17.5 \
+        -n kube-system cilium cilium/cilium \
+        --set ipam.mode=kubernetes \
+        --set cluster.poolIPv4PodCIDR={{ pod_cidr }} \
+        --set cluster.poolIPv4ServicesCIDR={{ service_cidr }} \
+        --kubeconfig /etc/rancher/k3s/k3s.yaml
+  args:
+    executable: /bin/bash
+
+- name: Wait for Cilium to be ready
+  shell: |
+    sudo kubectl -n kube-system rollout status daemonset/cilium --timeout=300s --kubeconfig /etc/rancher/k3s/k3s.yaml
+  args:
+    executable: /bin/bash
+
+- name: Wait for K3s to be ready
+  command: sudo kubectl wait --for=condition=Ready node --all --timeout=60s --kubeconfig /etc/rancher/k3s/k3s.yaml
+
+- name: Ensure .kube directory exists in user's home
+  file:
+    path: "{{ ansible_env.HOME }}/.kube"
+    state: directory
+    mode: "0755"
+
+- name: Copy kubeconfig to the user's home directory
+  copy:
+    src: /etc/rancher/k3s/k3s.yaml
+    dest: "{{ ansible_env.HOME }}/.kube/config"
+    remote_src: yes
+    mode: "0644"
+  become: true
+  become_user: root
+
+- name: Replace 127.0.0.1 in kubeconfig with the instance's private IP
+  replace:
+    path: "{{ ansible_env.HOME }}/.kube/config"
+    regexp: "127.0.0.1"
+    replace: "{{ instance_private_ip }}"
+
+- name: Fetch kubeconfig to local machine
+  fetch:
+    src: "{{ ansible_env.HOME }}/.kube/config"
+    dest: "./kubeconfig_{{ instance_name }}.yaml"
+    flat: yes

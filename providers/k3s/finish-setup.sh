@@ -13,7 +13,7 @@ KUBECONFIG_FILE_CLUSTER_2="../../kubeconfig_instance_2.yaml"
 echo $CLUSTER_1_NAME >"../../$CONTEXT_1_FILE"
 echo $CLUSTER_2_NAME >"../../$CONTEXT_2_FILE"
 
-yq -y -i '
+yq -i '
     .clusters[] |= 
         if .name == "default" then .name = env.CLUSTER_1_NAME | .cluster else . end |
     .contexts[] |= 
@@ -23,7 +23,7 @@ yq -y -i '
     .current-context = env.CLUSTER_1_NAME
 ' "$KUBECONFIG_FILE_CLUSTER_1"
 
-yq -y -i '
+yq -i '
     .clusters[] |= 
         if .name == "default" then .name = env.CLUSTER_2_NAME | .cluster else . end |
     .contexts[] |= 

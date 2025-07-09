@@ -1,15 +1,18 @@
-- name: Install git on the host
+- name: Install git and yq on the host
   become: true
   package:
-    name: git
+    name:
+      - git
+      - yq
     state: present
 
 - name: Clone multi-cluster-benchmarking repository into home directory
   git:
     repo: https://github.com/benedictweis/multi-cluster-benchmarking
     dest: "{{ ansible_env.HOME }}/multi-cluster-benchmarking"
-    clone: yes
-    update: yes
+    clone: true
+    update: true
+    force: true
 
 - name: Copy kubeconfig_instance_1.yaml to cloned repo
   copy:

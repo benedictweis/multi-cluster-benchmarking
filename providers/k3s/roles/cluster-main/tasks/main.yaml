@@ -21,9 +21,10 @@
     src: ./kubeconfig_instance_2.yaml
     dest: "{{ ansible_env.HOME }}/multi-cluster-benchmarking/kubeconfig_instance_2.yaml"
 
-- name: Run the finish-setup.sh script and show its output
+- name: Run the finish-setup.sh script
   shell: |
     cd "{{ ansible_env.HOME }}/multi-cluster-benchmarking/providers/k3s"
+    chmod +x finish-setup.sh
     ./finish-setup.sh
   args:
     executable: /bin/bash

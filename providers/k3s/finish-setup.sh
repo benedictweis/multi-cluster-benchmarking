@@ -14,23 +14,21 @@ echo $CLUSTER_1_NAME >"../../$CONTEXT_1_FILE"
 echo $CLUSTER_2_NAME >"../../$CONTEXT_2_FILE"
 
 yq -i "
-    .clusters[] |= 
-        if .name == \"default\" then .name = env.CLUSTER_1_NAME | .cluster else . end |
-    .contexts[] |= 
-        if .name == \"default\" then .name = env.CLUSTER_1_NAME | .context.cluster = env.CLUSTER_1_NAME | .context.user = \"user-1\" else . end |
-    .users[] |= 
-        if .name == \"default\" then .name = \"user-1\" else . end |
-    .current-context = env.CLUSTER_1_NAME
+  (.clusters[] | select(.name == \"default\")).name = env.CLUSTER_1_NAME |
+  (.contexts[] | select(.name == \"default\")).name = env.CLUSTER_1_NAME |
+  (.contexts[] | select(.name == env.CLUSTER_1_NAME)).context.cluster = env.CLUSTER_1_NAME |
+  (.contexts[] | select(.name == env.CLUSTER_1_NAME)).context.user = \"user-1\" |
+  (.users[] | select(.name == \"default\")).name = \"user-1\" |
+  .[\"current-context\"] = env.CLUSTER_1_NAME
 " "$KUBECONFIG_FILE_CLUSTER_1"
 
 yq -i "
-    .clusters[] |= 
-        if .name == \"default\" then .name = env.CLUSTER_2_NAME | .cluster else . end |
-    .contexts[] |= 
-        if .name == \"default\" then .name = env.CLUSTER_2_NAME | .context.cluster = env.CLUSTER_2_NAME | .context.user = \"user-2\" else . end |
-    .users[] |= 
-        if .name == \"default\" then .name = \"user-2\" else . end |
-    .current-context = env.CLUSTER_2_NAME
+  (.clusters[] | select(.name == \"default\")).name = env.CLUSTER_2_NAME |
+  (.contexts[] | select(.name == \"default\")).name = env.CLUSTER_2_NAME |
+  (.contexts[] | select(.name == env.CLUSTER_2_NAME)).context.cluster = env.CLUSTER_2_NAME |
+  (.contexts[] | select(.name == env.CLUSTER_2_NAME)).context.user = \"user-2\" |
+  (.users[] | select(.name == \"default\")).name = \"user-2\" |
+  .[\"current-context\"] = env.CLUSTER_2_NAME
 " "$KUBECONFIG_FILE_CLUSTER_2"
 
 yq -i ".clusters[0].name = \"$CLUSTER_1_NAME\"" "$KUBECONFIG_FILE_CLUSTER_1"

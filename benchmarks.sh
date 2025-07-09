@@ -84,7 +84,8 @@ function benchmark_approach() {
             read -p "Press key to continue.. " -n1 -s
             echo
         else
-            sleep 5
+            sleep 1
+            kubectl wait --for=condition=Ready pod -n "$benchmark" -l "$LABEL" --context "$CLUSTER_2_CONTEXT" --timeout=20s
             while true; do
                 sleep 1
                 kubectl top nodes --context $CLUSTER_1_CONTEXT >>"./$RESULTS_DIR/$PROVIDER-$approach-$benchmark-metrics-$CLUSTER_1_NAME-$DATE".log

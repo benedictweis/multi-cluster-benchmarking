@@ -62,7 +62,7 @@ class NginxWrkBenchmarkParser(BenchmarkDataParser):
         benchmarks = []
         for filename in benchmark_files:
             with open(filename, 'r') as f:
-                avg_latency = None
+                data = []
                 for line in f:
                     if "Latency" in line and "Thread Stats" not in line:
                         try:
@@ -70,14 +70,12 @@ class NginxWrkBenchmarkParser(BenchmarkDataParser):
                             # Find the value and unit (e.g., 7.39ms)
                             value_str = parts[1]
                             if value_str.endswith("ms"):
-                                avg_latency = float(value_str.replace("ms", ""))
+                                data.append(float(value_str.replace("ms", "")))
                             elif value_str.endswith("s"):
-                                avg_latency = float(value_str.replace("s", "")) * 1000
+                                data.append(float(value_str.replace("s", "")) * 1000)
                         except Exception:
                             logger.error(f"Error parsing latency from line: {line} in file: {filename}")
-                        break
-                if avg_latency is not None:
-                    benchmarks.append(Benchmark(name=os.path.basename(filename), data=[avg_latency]))
+                benchmarks.append(Benchmark(name=os.path.basename(filename), data=data))
 
         return BenchmarkRuns(
             plot_name='Nginx wrk Benchmark',

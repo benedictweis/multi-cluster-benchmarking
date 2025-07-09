@@ -31,10 +31,14 @@ RUN curl -fsSL https://packages.smallstep.com/keys/apt/repo-signing-key.gpg -o /
 RUN curl --proto '=https' --tlsv1.2 -sSfL https://run.linkerd.io/install-edge | sh
 ENV PATH="/root/.linkerd2/bin:${PATH}"
 
-RUN curl --fail -LS "https://github.com/liqotech/liqo/releases/download/v1.0.0/liqoctl-linux-amd64.tar.gz" | tar -xz &&\ 
+RUN CLI_ARCH=amd64 && \
+    if [ "$(uname -m)" = "aarch64" ]; then CLI_ARCH=arm64; fi && \
+    curl --fail -LS "https://github.com/liqotech/liqo/releases/download/v1.0.0/liqoctl-linux-${CLI_ARCH}.tar.gz" | tar -xz &&\ 
     install -o root -g root -m 0755 liqoctl /usr/local/bin/liqoctl
 
-RUN curl --fail -LS "https://github.com/skupperproject/skupper/releases/download/1.9.2/skupper-cli-1.9.2-linux-amd64.tgz" | tar -xz &&\ 
+RUN CLI_ARCH=amd64 && \
+    if [ "$(uname -m)" = "aarch64" ]; then CLI_ARCH=arm64; fi && \
+    curl --fail -LS "https://github.com/skupperproject/skupper/releases/download/1.9.2/skupper-cli-1.9.2-linux-${CLI_ARCH}.tgz" | tar -xz &&\ 
     install -o root -g root -m 0755 skupper /usr/local/bin/skupper
 
 RUN ARCH=$(uname -m) && \

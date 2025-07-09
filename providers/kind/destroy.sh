@@ -2,8 +2,8 @@
 
 set -euo pipefail
 
-source ../../helper.sh
 source ../../config.cfg
+source ../../helper.sh
 
 for CLUSTER_NAME in "${CLUSTER_1_NAME}" "${CLUSTER_2_NAME}"; do
     info "[$CLUSTER_NAME] Destroying kind cluster"

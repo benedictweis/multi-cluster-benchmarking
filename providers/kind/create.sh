@@ -2,8 +2,8 @@
 
 set -euo pipefail
 
-source ../../helper.sh
 source ../../config.cfg
+source ../../helper.sh
 
 HELM_REPO_URL="https://helm.cilium.io/"
 
@@ -31,6 +31,7 @@ for CLUSTER_NAME in "${CLUSTER_1_NAME}" "${CLUSTER_2_NAME}"; do
     sleep 5
 
     info "[$PROVIDER $CLUSTER_NAME] Configuring l2 advertisement."
+    source ../../helper.sh # Recalculate NETWORK_PREFIX
     export NETWORK_PREFIX
     if [[ "$CLUSTER_NAME" == "$CLUSTER_1_NAME" ]]; then
         export START_GROUP=150

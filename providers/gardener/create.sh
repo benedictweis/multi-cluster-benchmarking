@@ -2,8 +2,8 @@
 
 set -euo pipefail
 
-source ../../helper.sh
 source ../../config.cfg
+source ../../helper.sh
 source .env
 
 KUBECONFIG_FILE_1=$(mktemp)

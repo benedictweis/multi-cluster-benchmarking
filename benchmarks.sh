@@ -6,8 +6,8 @@ set -o errexit
 set -o nounset
 if [[ "${TRACE-0}" == "1" ]]; then set -o xtrace; fi
 
-source helper.sh
 source config.cfg
+source helper.sh
 
 set -o pipefail
 
@@ -84,6 +84,7 @@ function benchmark_approach() {
             read -p "Press key to continue.. " -n1 -s
             echo
         else
+            sleep 5
             while true; do
                 sleep 1
                 kubectl top nodes --context $CLUSTER_1_CONTEXT >>"./$RESULTS_DIR/$PROVIDER-$approach-$benchmark-metrics-$CLUSTER_1_NAME-$DATE".log

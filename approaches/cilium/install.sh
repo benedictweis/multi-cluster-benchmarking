@@ -2,8 +2,8 @@
 
 set -euo pipefail
 
-source ../../helper.sh
 source ../../config.cfg
+source ../../helper.sh
 
 HELM_REPO_URL="https://helm.cilium.io/"
 CILIUM_HELM_VALUES_FILE="cilium.yaml"

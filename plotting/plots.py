@@ -126,6 +126,7 @@ class MemoryBenchmarkParser(BenchmarkDataParser):
                     mem_str = parts[3]
                     mem_val = float(mem_str.replace("Mi", ""))
                     aggregated_memory += mem_val
+                logger.info(f"Parsed memory data from {filename}: {max(data)}")
                 benchmarks.append(Benchmark(name=os.path.basename(filename), data=[max(data)]))
 
         return BenchmarkRuns(
@@ -195,7 +196,8 @@ class BoxPlotGenerator(BenchmarkOutputGenerator):
 
 class BarChartGenerator(BenchmarkOutputGenerator):
     def generate_plot(self, benchmark_runs: BenchmarkRuns, output_file: str):
-        plot_data = [benchmark_runs.benchmarks[0].data[0]]
+        # Gather the data for all benchmarks
+        plot_data = [benchmark.data[0] for benchmark in benchmark_runs.benchmarks]
         labels = [benchmark.name for benchmark in benchmark_runs.benchmarks]
 
         plt.figure(figsize=(10, 5))
@@ -207,6 +209,14 @@ class BarChartGenerator(BenchmarkOutputGenerator):
 
         plt.gca().xaxis.grid(True, which='major', linestyle='-', linewidth=0.7, color='gray', alpha=0.5)
         plt.gca().set_axisbelow(True)
+
+        min_val = min(plot_data)
+        max_val = max(plot_data)
+        if min_val != max_val:
+            margin = (max_val - min_val) * 0.1  # 10% margin
+            plt.xlim(min_val - margin, max_val + margin)
+        else:
+            plt.xlim(min_val - 1, max_val + 1)
 
         plt.tight_layout(pad=1.0)
         plt.savefig(output_file, dpi=300)

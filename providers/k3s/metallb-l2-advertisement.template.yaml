@@ -2,14 +2,14 @@
 apiVersion: metallb.io/v1beta1
 kind: IPAddressPool
 metadata:
-  name: docker-kind-network-pool
+  name: node-ip-address-pool
   namespace: metallb-system
 spec:
   addresses:
-    - ${NODE_IP_ADDR}/32
+    - ${NODE_IP_ADDR}-${NODE_IP_ADDR}
 ---
 apiVersion: metallb.io/v1beta1
 kind: L2Advertisement
 metadata:
-  name: docker-kind-network-advertisement
+  name: node-ip-address-pool
   namespace: metallb-system

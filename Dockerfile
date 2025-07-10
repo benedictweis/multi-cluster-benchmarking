@@ -35,8 +35,9 @@ RUN CILIUM_CLI_VERSION=$(curl -s https://raw.githubusercontent.com/cilium/cilium
     tar xzvf cilium-linux-${CLI_ARCH}.tar.gz -C /usr/local/bin && \
     rm cilium-linux-${CLI_ARCH}.tar.gz cilium-linux-${CLI_ARCH}.tar.gz.sha256sum
 
-RUN curl --proto '=https' --tlsv1.2 -sSfL https://run.linkerd.io/install-edge | sh
-ENV PATH="/root/.linkerd2/bin:${PATH}"
+RUN curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.29.0/kind-linux-${CLI_ARCH} && \
+    chmod +x ./kind && \
+    mv ./kind /usr/local/bin/kind
 
 RUN curl --fail -LS "https://github.com/liqotech/liqo/releases/download/v1.0.0/liqoctl-linux-${CLI_ARCH}.tar.gz" | tar -xz &&\ 
     install -o root -g root -m 0755 liqoctl /usr/local/bin/liqoctl
@@ -44,12 +45,11 @@ RUN curl --fail -LS "https://github.com/liqotech/liqo/releases/download/v1.0.0/l
 RUN curl --fail -LS "https://github.com/skupperproject/skupper/releases/download/1.9.2/skupper-cli-1.9.2-linux-${CLI_ARCH}.tgz" | tar -xz &&\ 
     install -o root -g root -m 0755 skupper /usr/local/bin/skupper
 
-RUN curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.29.0/kind-linux-${CLI_ARCH} && \
-    chmod +x ./kind && \
-    mv ./kind /usr/local/bin/kind
-
 RUN curl -Ls https://get.submariner.io | bash
 ENV PATH="$PATH:~/.local/bin"
+
+RUN curl --proto '=https' --tlsv1.2 -sSfL https://run.linkerd.io/install-edge | sh
+ENV PATH="/root/.linkerd2/bin:${PATH}"
 
 RUN curl -L https://istio.io/downloadIstio | ISTIO_VERSION=1.26.2 sh -
 ENV PATH="$PATH:/istio-1.26.2/bin"

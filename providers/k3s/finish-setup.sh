@@ -32,6 +32,7 @@ for CLUSTER_NAME in "${CLUSTER_1_NAME}" "${CLUSTER_2_NAME}"; do
 
     info "[$PROVIDER $CLUSTER_NAME] Configuring l2 advertisement."
     source ../../helper.sh # Recalculate NETWORK_PREFIX
+    export NETWORK_PREFIX
     if [[ "$CLUSTER_NAME" == "$CLUSTER_1_NAME" ]]; then
         export START_GROUP=150
         export END_GROUP=175

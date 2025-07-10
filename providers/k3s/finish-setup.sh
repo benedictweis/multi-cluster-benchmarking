@@ -45,6 +45,6 @@ for CLUSTER_NAME in "${CLUSTER_1_NAME}" "${CLUSTER_2_NAME}"; do
     sleep 5
 
     info "[$PROVIDER $CLUSTER_NAME] Configuring l2 advertisement."
-    export CLUSTER_IP_ADDR=$(kubectl get node -l node-role.kubernetes.io/control-plane -o jsonpath='{.items[0].status.addresses[?(@.type=="InternalIP")].address}')
+    export NODE_IP_ADDR=$(kubectl get node -l node-role.kubernetes.io/control-plane -o jsonpath='{.items[0].status.addresses[?(@.type=="InternalIP")].address}')
     envsubst <metallb-l2-advertisement.template.yaml | kubectl apply -f -
 done

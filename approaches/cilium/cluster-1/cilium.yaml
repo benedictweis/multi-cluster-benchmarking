@@ -3,8 +3,10 @@ version: 1.17.5
 cluster:
   name: cluster-1
   id: 1
-  poolIPv4PodCIDR: "10.1.0.0/16"
-  poolIPv4ServicesCIDR: "10.10.0.0/16"
+
+ipam:
+  operator:
+    clusterPoolIPv4PodCIDRList: ["10.1.0.0/16"]
 
 clustermesh:
   useAPIServer: true

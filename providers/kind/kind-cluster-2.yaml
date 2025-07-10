@@ -6,4 +6,6 @@ nodes:
   - role: worker
 networking:
   disableDefaultCNI: true
+  podSubnet: "10.2.0.0/16"
+  serviceSubnet: "10.20.0.0/16"
   apiServerPort: 6442

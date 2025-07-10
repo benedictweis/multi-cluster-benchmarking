@@ -12,18 +12,11 @@ for CLUSTER_NAME in "${CLUSTER_1_NAME}" "${CLUSTER_2_NAME}"; do
     kind create cluster --config "kind-${CLUSTER_NAME}.yaml"
     kubectl config use "kind-${CLUSTER_NAME}"
 
-    if [[ "$CLUSTER_NAME" == "$CLUSTER_1_NAME" ]]; then
-        POD_CIDR="10.1.0.0/16"
-    elif [[ "$CLUSTER_NAME" == "$CLUSTER_2_NAME" ]]; then
-        POD_CIDR="10.2.0.0/16"
-    fi
-
     info "[$PROVIDER $CLUSTER_NAME] Installing Cilium"
     helm repo add cilium "${HELM_REPO_URL}"
     helm repo update
     helm upgrade --install --reset-values --version 1.17.5 -n kube-system cilium cilium/cilium \
-        --set ipam.operator.clusterPoolIPv4PodCIDRList=["${POD_CIDR}"]
-
+        --set ipam.mode=kubernetes
     info "[$PROVIDER $CLUSTER_NAME] Waiting for Cilium to be ready"
     cilium status --wait
 

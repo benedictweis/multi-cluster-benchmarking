@@ -16,7 +16,7 @@
 
 - name: Set K3s install options
   set_fact:
-    install_k3s_exec: "--disable-network-policy --disable=cni,traefik,servicelb --flannel-backend=none"
+    install_k3s_exec: "--disable=cni,traefik,servicelb --disable-network-policy --flannel-backend=none --cluster-cidr={{ pod_cidr }} --service-cidr={{ service_cidr }}"
 
 - name: Install K3s with custom options
   shell: |
@@ -35,7 +35,7 @@
     sleep 10
     sudo helm upgrade --install --reset-values --version 1.17.5 \
         -n kube-system cilium cilium/cilium \
-        --set ipam.operator.clusterPoolIPv4PodCIDRList=["{{ pod_cidr }}"] \
+        --set ipam.mode=kubernetes \
         --kubeconfig /etc/rancher/k3s/k3s.yaml
   args:
     executable: /bin/bash

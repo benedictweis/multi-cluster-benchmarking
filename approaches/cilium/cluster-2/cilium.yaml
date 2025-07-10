@@ -5,8 +5,7 @@ cluster:
   id: 2
 
 ipam:
-  operator:
-    clusterPoolIPv4PodCIDRList: ["10.2.0.0/16"]
+  mode: kubernetes
 
 clustermesh:
   useAPIServer: true

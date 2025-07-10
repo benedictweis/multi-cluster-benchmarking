@@ -42,6 +42,10 @@ helm upgrade --install --reset-values -n kube-system cilium cilium/cilium -f "${
 approachinfo "Restarting all Cilium pods in cluster-2"
 kubectl --context="${CLUSTER_2_CONTEXT}" -n kube-system delete pod -l k8s-app=cilium
 
+approachinfo "Scaling deployments"
+kubectl -n kube-system scale deployment cilium-operator --replicas=1 --context "${CLUSTER_1_CONTEXT}"
+kubectl -n kube-system scale deployment cilium-operator --replicas=1 --context "${CLUSTER_2_CONTEXT}"
+
 approachinfo "Waiting for cluster to be ready"
 cilium status --context "${CLUSTER_1_CONTEXT}" --wait
 cilium status --context "${CLUSTER_2_CONTEXT}" --wait

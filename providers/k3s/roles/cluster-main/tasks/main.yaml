@@ -10,13 +10,6 @@
       - git
     state: present
 
-- name: Download yq binary
-  become: true
-  get_url:
-    url: https://github.com/mikefarah/yq/releases/latest/download/yq_linux_arm64
-    dest: /usr/local/bin/yq
-    mode: "0755"
-
 - name: Clone multi-cluster-benchmarking repository into home directory
   git:
     repo: https://github.com/benedictweis/multi-cluster-benchmarking
@@ -38,7 +31,7 @@
 - name: Run the finish-setup.sh script
   shell: |
     cd "{{ ansible_env.HOME }}/multi-cluster-benchmarking/providers/k3s"
-    chmod +x finish-setup.sh
-    ./finish-setup.sh
+    chmod +x docker.sh
+    sudo ./docker.sh bash ./finish-setup.sh
   args:
     executable: /bin/bash

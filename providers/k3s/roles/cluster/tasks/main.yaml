@@ -24,6 +24,10 @@
   args:
     executable: /bin/bash
 
+- name: Install K3s Agent Node
+  shell: |
+    sudo curl -sfL https://get.k3s.io | K3S_URL=https://{{ instance_private_ip }}:6443 K3S_TOKEN=$(cat /var/lib/rancher/k3s/server/node-token) sudo sh -
+
 - name: Install or upgrade Cilium via Helm
   shell: |
     sudo helm repo add cilium https://helm.cilium.io/ --kubeconfig /etc/rancher/k3s/k3s.yaml

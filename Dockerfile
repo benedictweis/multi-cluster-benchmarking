@@ -7,9 +7,9 @@ RUN apt-get install -y \
     ca-certificates \
     gnupg
 
-ARG CLI_ARCH=amd64
-RUN if [ "$(uname -m)" = "aarch64" ]; then export CLI_ARCH=arm64; fi
+ARG CLI_ARCH
 ENV CLI_ARCH=${CLI_ARCH}
+RUN echo "CLI_ARCH is set to: ${CLI_ARCH}"
 
 RUN curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.33/deb/Release.key | gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg && \
     chmod 644 /etc/apt/keyrings/kubernetes-apt-keyring.gpg && \

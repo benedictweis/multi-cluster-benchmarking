@@ -1,7 +1,13 @@
+- name: Update apt cache
+  become: true
+  apt:
+    update_cache: yes
+
 - name: Install git on the host
   become: true
   package:
-    name: git
+    name:
+      - git
     state: present
 
 - name: Download yq binary

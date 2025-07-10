@@ -3,9 +3,8 @@ version: 1.17.5
 cluster:
   name: cluster-2
   id: 2
-
-ipam:
-  mode: kubernetes
+  poolIPv4PodCIDR: "10.2.0.0/16"
+  poolIPv4ServicesCIDR: "10.20.0.0/16"
 
 clustermesh:
   useAPIServer: true

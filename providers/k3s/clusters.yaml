@@ -2,30 +2,30 @@
   vars_files:
     - ./vars.yaml
 
-- name: Run cluster role on instance_1
-  hosts:
-    - instance_1
-  roles:
-    - role: cluster
-      vars:
-        instance_name: "instance_1"
-        instance_private_ip: "{{ instance_1_private_ip }}"
-        pod_cidr: 10.1.0.0/16
-        service_cidr: 10.10.0.0/16
-- name: Run cluster role on instance_1
-  hosts:
-    - instance_2
-  roles:
-    - role: cluster
-      vars:
-        instance_name: "instance_2"
-        instance_private_ip: "{{ instance_2_private_ip }}"
-        pod_cidr: "10.2.0.0/16"
-        service_cidr: "10.20.0.0/16"
-#- name: Run cluster-main role on instance_1
+#- name: Run cluster role on instance_1
 #  hosts:
 #    - instance_1
 #  roles:
-#    - role: cluster-main
+#    - role: cluster
 #      vars:
 #        instance_name: "instance_1"
+#        instance_private_ip: "{{ instance_1_private_ip }}"
+#        pod_cidr: 10.1.0.0/16
+#        service_cidr: 10.10.0.0/16
+#- name: Run cluster role on instance_1
+#  hosts:
+#    - instance_2
+#  roles:
+#    - role: cluster
+#      vars:
+#        instance_name: "instance_2"
+#        instance_private_ip: "{{ instance_2_private_ip }}"
+#        pod_cidr: "10.2.0.0/16"
+#        service_cidr: "10.20.0.0/16"
+- name: Run cluster-main role on instance_1
+  hosts:
+    - instance_1
+  roles:
+    - role: cluster-main
+      vars:
+        instance_name: "instance_1"

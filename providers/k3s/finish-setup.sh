@@ -5,8 +5,6 @@ set -euo pipefail
 source ../../config.cfg
 source ../../helper.sh
 
-bash ../../install-docker.sh
-
 KUBECONFIG_FILE_CLUSTER_1="../../kubeconfig_instance_1.yaml"
 KUBECONFIG_FILE_CLUSTER_2="../../kubeconfig_instance_2.yaml"
 
@@ -21,6 +19,8 @@ kubectl config view --flatten >"../../$KUBECONFIG_FILE"
 export KUBECONFIG="../../$KUBECONFIG_FILE"
 
 for CLUSTER_NAME in "${CLUSTER_1_NAME}" "${CLUSTER_2_NAME}"; do
+    kubectl config use "${CLUSTER_NAME}"
+
     info "[$PROVIDER $CLUSTER_NAME] Deploying metallb"
     kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.15.2/config/manifests/metallb-native.yaml
     info "[$PROVIDER $CLUSTER_NAME] Waiting for metallb to be ready"

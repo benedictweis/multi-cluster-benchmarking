@@ -61,6 +61,7 @@ RUN apt-get install -y \
     helm \
     step-cli \
     jq \
+    yq \
     gettext \
     docker-ce \
     docker-ce-cli \

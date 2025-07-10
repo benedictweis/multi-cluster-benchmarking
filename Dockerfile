@@ -39,7 +39,7 @@ RUN curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.29.0/kind-linux-${CLI_ARCH} &
     chmod +x ./kind && \
     mv ./kind /usr/local/bin/kind
 
-RUN curl -Lo /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 && \
+RUN curl -Lo /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_${CLI_ARCH} && \
     chmod +x /usr/local/bin/yq
 
 RUN curl --fail -LS "https://github.com/liqotech/liqo/releases/download/v1.0.0/liqoctl-linux-${CLI_ARCH}.tar.gz" | tar -xz &&\ 

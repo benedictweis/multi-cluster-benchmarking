@@ -28,3 +28,20 @@ yq -i '.users[0].name = "user-2"' "$KUBECONFIG_FILE_CLUSTER_2"
 export KUBECONFIG="$KUBECONFIG_FILE_CLUSTER_1:$KUBECONFIG_FILE_CLUSTER_2"
 kubectl config view --flatten >"../../$KUBECONFIG_FILE"
 export KUBECONFIG="../../$KUBECONFIG_FILE"
+
+for CLUSTER_NAME in "${CLUSTER_1_NAME}" "${CLUSTER_2_NAME}"; do
+    kubectl config use "kind-${CLUSTER_NAME}"
+
+    info "[$PROVIDER $CLUSTER_NAME] Deploying metallb"
+    kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.15.2/config/manifests/metallb-native.yaml
+    info "[$PROVIDER $CLUSTER_NAME] Waiting for metallb to be ready"
+    kubectl wait --namespace metallb-system \
+        --for=condition=ready pod \
+        --selector=component=controller \
+        --timeout=90s
+    sleep 5
+
+    info "[$PROVIDER $CLUSTER_NAME] Configuring l2 advertisement."
+    export CLUSTER_IP_ADDR=$(kubectl get node -l node-role.kubernetes.io/control-plane -o jsonpath='{.items[0].status.addresses[?(@.type=="InternalIP")].address}')
+    envsubst <metallb-l2-advertisement.template.yaml | kubectl apply -f -
+done

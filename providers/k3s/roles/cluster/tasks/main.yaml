@@ -35,7 +35,6 @@
     sleep 10
     sudo helm upgrade --install --reset-values --version 1.17.5 \
         -n kube-system cilium cilium/cilium \
-        --set ipam.mode=kubernetes \
         --set cluster.poolIPv4PodCIDR={{ pod_cidr }} \
         --set cluster.poolIPv4ServicesCIDR={{ service_cidr }} \
         --kubeconfig /etc/rancher/k3s/k3s.yaml

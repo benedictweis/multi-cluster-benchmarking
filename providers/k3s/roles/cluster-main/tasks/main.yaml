@@ -31,9 +31,9 @@
 - name: Run the finish-setup.sh script
   shell: |
     cd "{{ ansible_env.HOME }}/multi-cluster-benchmarking"
-    chmod +x ./docker.sh
     chmod +x ./install-docker.sh
     sudo ./install-docker.sh
+    chmod +x ./docker.sh
     sudo ./docker.sh sh -c "(cd ./providers/k3s && bash ./finish-setup.sh)"
   args:
     executable: /bin/bash

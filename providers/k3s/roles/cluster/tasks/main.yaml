@@ -16,7 +16,7 @@
 
 - name: Set K3s install options
   set_fact:
-    install_k3s_exec: "--disable-network-policy --disable=cni --flannel-backend=none --disable=traefik --disable=servicelb"
+    install_k3s_exec: "--disable-network-policy --disable=cni,traefik --flannel-backend=none"
 
 - name: Install K3s with custom options
   shell: |

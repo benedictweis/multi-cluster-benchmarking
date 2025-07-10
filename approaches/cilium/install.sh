@@ -39,12 +39,13 @@ CILIUM_HELM_VALUES_FILE_2=$(mktemp)
 envsubst <"${CLUSTER_2_NAME}/${CILIUM_HELM_VALUES_FILE}" >"${CILIUM_HELM_VALUES_FILE_2}"
 helm upgrade --install --reset-values -n kube-system cilium cilium/cilium -f "${CILIUM_HELM_VALUES_FILE_2}" --kube-context "${CLUSTER_2_CONTEXT}"
 
-approachinfo "Restarting all Cilium pods in cluster-2"
-kubectl --context="${CLUSTER_2_CONTEXT}" -n kube-system delete pod -l k8s-app=cilium
-
 approachinfo "Scaling deployments"
 kubectl -n kube-system scale deployment cilium-operator --replicas=1 --context "${CLUSTER_1_CONTEXT}"
 kubectl -n kube-system scale deployment cilium-operator --replicas=1 --context "${CLUSTER_2_CONTEXT}"
+
+approachinfo "Restarting all Cilium pods"
+kubectl --context="${CLUSTER_1_CONTEXT}" -n kube-system delete pod -l k8s-app=cilium
+kubectl --context="${CLUSTER_2_CONTEXT}" -n kube-system delete pod -l k8s-app=cilium
 
 approachinfo "Waiting for cluster to be ready"
 cilium status --context "${CLUSTER_1_CONTEXT}" --wait

@@ -15,9 +15,17 @@ approachinfo "Adding cilium helm repo"
 helm repo add cilium "${HELM_REPO_URL}"
 helm repo update
 
+approachinfo "Setting up network configuration"
+if [[ "${PROVIDER}" == "kind" ]]; then
+    export CLUSTER_1_CILIUM_APISERVER_IP="$NETWORK_PREFIX.159"
+    export CLUSTER_2_CILIUM_APISERVER_IP="$NETWORK_PREFIX.160"
+elif [[ "${PROVIDER}" == "k3s" ]]; then
+    export CLUSTER_1_CILIUM_APISERVER_IP=$(kubectl --context "${CLUSTER_1_CONTEXT}" get node -l node-role.kubernetes.io/control-plane -o jsonpath='{.items[0].status.addresses[?(@.type=="InternalIP")].address}')
+    export CLUSTER_2_CILIUM_APISERVER_IP=$(kubectl --context "${CLUSTER_2_CONTEXT}" get node -l node-role.kubernetes.io/control-plane -o jsonpath='{.items[0].status.addresses[?(@.type=="InternalIP")].address}')
+fi
+
 approachinfo "Installing Cilium on cluster-1"
 CILIUM_HELM_VALUES_FILE_1=$(mktemp)
-export NETWORK_PREFIX
 envsubst <"${CLUSTER_1_NAME}/${CILIUM_HELM_VALUES_FILE}" >"${CILIUM_HELM_VALUES_FILE_1}"
 helm upgrade --install --reset-values -n kube-system cilium cilium/cilium -f "${CILIUM_HELM_VALUES_FILE_1}" --kube-context "${CLUSTER_1_CONTEXT}"
 
@@ -28,7 +36,6 @@ kubectl --context="${CLUSTER_1_CONTEXT}" get secret -n kube-system cilium-ca -o 
 
 approachinfo "Installing Cilium on cluster-2"
 CILIUM_HELM_VALUES_FILE_2=$(mktemp)
-export NETWORK_PREFIX
 envsubst <"${CLUSTER_2_NAME}/${CILIUM_HELM_VALUES_FILE}" >"${CILIUM_HELM_VALUES_FILE_2}"
 helm upgrade --install --reset-values -n kube-system cilium cilium/cilium -f "${CILIUM_HELM_VALUES_FILE_2}" --kube-context "${CLUSTER_2_CONTEXT}"
 

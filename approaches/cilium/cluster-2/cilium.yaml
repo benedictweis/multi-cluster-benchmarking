@@ -1,24 +1,24 @@
 version: 1.17.5
 
 cluster:
-    name: cluster-2
-    id: 2
+  name: cluster-2
+  id: 2
 
 ipam:
-    mode: kubernetes
+  mode: kubernetes
 
 clustermesh:
-    useAPIServer: true
-    config:
-        enabled: true
-        clusters:
-            - name: cluster-1
-              port: 2379
-              ips:
-                  - ${NETWORK_PREFIX}.159
-    apiserver:
-        service:
-            type: LoadBalancer
-            loadBalancerIP: ${NETWORK_PREFIX}.179
-        kvstoremesh:
-            enabled: false
+  useAPIServer: true
+  config:
+    enabled: true
+    clusters:
+      - name: cluster-1
+        port: 2379
+        ips:
+          - ${CLUSTER_1_CILIUM_APISERVER_IP}
+  apiserver:
+    service:
+      type: LoadBalancer
+      loadBalancerIP: ${CLUSTER_2_CILIUM_APISERVER_IP}
+    kvstoremesh:
+      enabled: false

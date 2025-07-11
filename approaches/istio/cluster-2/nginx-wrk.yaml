@@ -1,26 +1,25 @@
 apiVersion: v1
 kind: Service
 metadata:
-    name: nginx-server
-    namespace: nginx-wrk
-    labels:
-        app: nginx-server
-        service: nginx-server
+  name: nginx-server
+  namespace: nginx-wrk
+  labels:
+    app: nginx-server
+    service: nginx-server
 spec:
-    selector:
-        app: nginx
-    ports:
-        - protocol: TCP
-          port: 80
-          targetPort: 80
-    type: ClusterIP
+  selector:
+    app: nginx
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+  type: ClusterIP
 ---
 apiVersion: v1
 kind: ConfigMap
 metadata:
-    name: nginx-config
-    namespace: nginx-wrk
+  name: nginx-config
+  namespace: nginx-wrk
 data:
-    SERVER_ADDRESS: "nginx-server"
-    SERVER_PORT: "80"
-    INITIAL_SLEEP: "10"
+  SERVER_ADDRESS: "nginx-server"
+  INITIAL_SLEEP: "10"

@@ -28,6 +28,5 @@ metadata:
     namespace: nginx-curl
 data:
     SERVER_ADDRESS: "$SERVER_ADDRESS"
-    SERVER_PORT: "80"
     INITIAL_SLEEP: "50"
 EOF

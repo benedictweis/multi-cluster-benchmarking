@@ -1,9 +1,8 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-    name: nginx-config
-    namespace: nginx-curl
+  name: nginx-config
+  namespace: nginx-curl
 data:
-    SERVER_ADDRESS: "nginx-server"
-    SERVER_PORT: "80"
-    INITIAL_SLEEP: "200"
+  SERVER_ADDRESS: "nginx-server"
+  INITIAL_SLEEP: "200"

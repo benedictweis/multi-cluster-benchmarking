@@ -27,7 +27,6 @@ metadata:
     name: nginx-config
     namespace: nginx-wrk
 data:
-    SERVER_ADDRESS: "$SERVER_ADDRESS"
-    SERVER_PORT: "80"
+    SERVER_ADDRESS: "$SERVER_ADDRESS"  
     INITIAL_SLEEP: "50"
 EOF

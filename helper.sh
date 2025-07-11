@@ -12,6 +12,30 @@ function approachinfo() {
     echo -e "${GREEN}=> ${1}${ENDCOLOR}"
 }
 
+wait_for_gateway() {
+    local namespace=$1
+    local name=$2
+    local context=$3
+    local timeout=100
+    local interval=1
+    local elapsed=0
+
+    while true; do
+        external_ip=$(kubectl --context="$context" -n "$namespace" get svc "$name" -o jsonpath='{.status.loadBalancer.ingress[0].ip}' 2>/dev/null || echo "")
+        hostname=$(kubectl --context="$context" -n "$namespace" get svc "$name" -o jsonpath='{.status.loadBalancer.ingress[0].hostname}' 2>/dev/null || echo "")
+        if [[ -n "$external_ip" || -n "$hostname" ]]; then
+            approachinfo "Gateway in context $context is ready: ${external_ip:-$hostname}"
+            break
+        fi
+        if ((elapsed >= timeout)); then
+            echo "Timeout waiting for external IP/hostname for gateway in context $context"
+            exit 1
+        fi
+        sleep "$interval"
+        ((elapsed += interval))
+    done
+}
+
 if [[ $SET_NETWORK_PREFIX == "auto" ]]; then
     if docker network inspect kind &>/dev/null; then
         NETWORK_PREFIX=$(docker network inspect -f '{{(index .IPAM.Config 0).Gateway}}' kind | cut -d '.' -f 1-3)

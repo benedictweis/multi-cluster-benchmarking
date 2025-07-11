@@ -85,8 +85,12 @@ function benchmark_approach() {
             read -p "Press key to continue.. " -n1 -s
             echo
         else
-            sleep 5
-            kubectl wait --for=condition=Ready pod -n "$benchmark" -l "$LABEL" --context "$CLUSTER_2_CONTEXT" --timeout=20s
+            info "[$PROVIDER $approach $benchmark] Waiting for client pod to be scheduled in cluster 2"
+            until kubectl get pod -n "$benchmark" -l "$LABEL" --context "$CLUSTER_2_CONTEXT" | grep "${benchmark}-client" >/dev/null 2>&1; do
+                sleep 1
+            done
+            info "[$PROVIDER $approach $benchmark] Waiting for client pod to be ready in cluster 2"
+            kubectl wait --for=condition=Ready pod -n "$benchmark" -l "$LABEL" --context "$CLUSTER_2_CONTEXT" --timeout=30s
             while true; do
                 sleep 1
                 kubectl top nodes --context $CLUSTER_1_CONTEXT >>"./$RESULTS_DIR/$PROVIDER-$approach-$benchmark-metrics-$CLUSTER_1_NAME-$DATE".log
@@ -164,7 +168,7 @@ function run_if_exists() {
     local mode="${2-}"
     if [[ -f "$script_path" ]]; then
         if [[ "${DRY_RUN-0}" != "1" ]]; then
-            (cd "$(dirname "$script_path")" && ./"$(basename $script_path)")
+            (./"$script_path")
         else
             info "DRY RUN: Would execute '$script_path'"
         fi

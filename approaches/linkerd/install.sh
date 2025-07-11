@@ -2,6 +2,8 @@
 
 set -euo pipefail
 
+cd "$(dirname "$0")" || exit 1
+
 source ../../config.cfg
 source ../../helper.sh
 
@@ -72,32 +74,8 @@ linkerd --context="$CLUSTER_1_CONTEXT" multicluster link-gen --cluster-name clus
 
 approachinfo "Waiting for Linkerd gateways to have an external IP or hostname"
 
-wait_for_gateway() {
-    local context=$1
-    local namespace="linkerd-multicluster"
-    local name="linkerd-gateway"
-    local timeout=100
-    local interval=1
-    local elapsed=0
-
-    while true; do
-        external_ip=$(kubectl --context="$context" -n "$namespace" get svc "$name" -o jsonpath='{.status.loadBalancer.ingress[0].ip}' 2>/dev/null || echo "")
-        hostname=$(kubectl --context="$context" -n "$namespace" get svc "$name" -o jsonpath='{.status.loadBalancer.ingress[0].hostname}' 2>/dev/null || echo "")
-        if [[ -n "$external_ip" || -n "$hostname" ]]; then
-            approachinfo "Gateway in context $context is ready: ${external_ip:-$hostname}"
-            break
-        fi
-        if ((elapsed >= timeout)); then
-            echo "Timeout waiting for external IP/hostname for gateway in context $context"
-            exit 1
-        fi
-        sleep "$interval"
-        ((elapsed += interval))
-    done
-}
-
-wait_for_gateway "$CLUSTER_1_CONTEXT"
-wait_for_gateway "$CLUSTER_2_CONTEXT"
+wait_for_gateway linkerd-multicluster linkerd-gateway "$CLUSTER_1_CONTEXT"
+wait_for_gateway linkerd-multicluster linkerd-gateway "$CLUSTER_2_CONTEXT"
 
 sleep 10
 

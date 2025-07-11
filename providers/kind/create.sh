@@ -2,6 +2,8 @@
 
 set -euo pipefail
 
+cd "$(dirname "$0")" || exit 1
+
 source ../../config.cfg
 source ../../helper.sh
 
@@ -17,6 +19,9 @@ for CLUSTER_NAME in "${CLUSTER_1_NAME}" "${CLUSTER_2_NAME}"; do
     helm repo update
     helm upgrade --install --reset-values --version 1.17.5 -n kube-system cilium cilium/cilium \
         --set ipam.mode=kubernetes
+
+    kubectl -n kube-system scale deployment cilium-operator --replicas=1
+
     info "[$PROVIDER $CLUSTER_NAME] Waiting for Cilium to be ready"
     cilium status --wait
 
@@ -30,7 +35,7 @@ for CLUSTER_NAME in "${CLUSTER_1_NAME}" "${CLUSTER_2_NAME}"; do
     sleep 5
 
     info "[$PROVIDER $CLUSTER_NAME] Configuring l2 advertisement."
-    source ../../helper.sh # Recalculate NETWORK_PREFIX
+    source ../../helper.sh # Reload NETWORK_PREFIX
     export NETWORK_PREFIX
     if [[ "$CLUSTER_NAME" == "$CLUSTER_1_NAME" ]]; then
         export START_GROUP=150

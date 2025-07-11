@@ -4,6 +4,8 @@
 
 set -euo pipefail
 
+cd "$(dirname "$0")" || exit 1
+
 source ../../config.cfg
 source ../../helper.sh
 

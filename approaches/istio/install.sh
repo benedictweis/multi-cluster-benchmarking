@@ -3,6 +3,8 @@
 
 set -euo pipefail
 
+cd "$(dirname "$0")" || exit 1
+
 source ../../config.cfg
 source ../../helper.sh
 
@@ -64,7 +66,7 @@ helm install istio-eastwestgateway istio/gateway -n istio-system --kube-context 
 
 approachinfo "Exposing services in cluster-1 and cluster-2"
 kubectl --context="$CLUSTER_1_CONTEXT" apply -n istio-system -f ./expose-services.yaml
-sleep 10
+sleep 5
 
 approachinfo "Verifying Istio Multi-Cluster Installation"
 istioctl remote-clusters --context="${CLUSTER_1_CONTEXT}"

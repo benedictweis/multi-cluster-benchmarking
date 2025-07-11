@@ -14,40 +14,52 @@
   register: helm_version
   changed_when: false
 
-- name: Set K3s install options
-  set_fact:
-    install_k3s_exec: "--disable=cni,traefik,servicelb --disable-network-policy --flannel-backend=none --cluster-cidr={{ pod_cidr }} --service-cidr={{ service_cidr }}"
+- name: Uninstall K3s agent if present (ignore errors)
+  become: true
+  shell: bash /usr/local/bin/k3s-agent-uninstall.sh &6 sleep 10
+  ignore_errors: true
+
+- name: Uninstall K3s server if present (ignore errors)
+  become: true
+  shell: bash /usr/local/bin/k3s-uninstall.sh && sleep 20
+  ignore_errors: true
 
 - name: Install K3s with custom options
   shell: |
-    curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="{{ install_k3s_exec }}" sh -
+    curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC='--disable cni --disable traefik --disable servicelb --disable-network-policy --flannel-backend=none --cluster-cidr={{ pod_cidr }} --service-cidr={{ service_cidr }}' sh -
   args:
     executable: /bin/bash
 
-- name: Install K3s Agent Node
+- name: Wait until there are any pods in the kube-system namespace
   shell: |
-    sudo curl -sfL https://get.k3s.io | K3S_URL=https://{{ instance_private_ip }}:6443 K3S_TOKEN=$(cat /var/lib/rancher/k3s/server/node-token) sudo sh -
+    while true; do
+      if sudo kubectl get pods -n kube-system --kubeconfig /etc/rancher/k3s/k3s.yaml | grep -q 'Pending'; then
+        break
+      fi
+      sleep 2
+    done
 
 - name: Install or upgrade Cilium via Helm
   shell: |
     sudo helm repo add cilium https://helm.cilium.io/ --kubeconfig /etc/rancher/k3s/k3s.yaml
     helm repo update --kubeconfig /etc/rancher/k3s/k3s.yaml
-    sleep 10
-    sudo helm upgrade --install --reset-values --version 1.17.5 \
+    sudo helm install --version 1.17.5 \
         -n kube-system cilium cilium/cilium \
-        --set ipam.mode=kubernetes \
+        --set=ipam.operator.clusterPoolIPv4PodCIDRList={{ pod_cidr }} \
         --kubeconfig /etc/rancher/k3s/k3s.yaml
   args:
     executable: /bin/bash
 
 - name: Wait for Cilium to be ready
   shell: |
+    sudo kubectl -n kube-system scale deployment cilium-operator --replicas=1 --kubeconfig /etc/rancher/k3s/k3s.yaml
     sudo kubectl -n kube-system rollout status daemonset/cilium --timeout=300s --kubeconfig /etc/rancher/k3s/k3s.yaml
   args:
     executable: /bin/bash
 
 - name: Wait for K3s to be ready
-  command: sudo kubectl wait --for=condition=Ready node --all --timeout=60s --kubeconfig /etc/rancher/k3s/k3s.yaml
+  shell: |
+    sudo kubectl wait --for=condition=Ready node --all --timeout=60s --kubeconfig /etc/rancher/k3s/k3s.yaml
 
 - name: Ensure .kube directory exists in user's home
   file:

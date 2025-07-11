@@ -4,5 +4,5 @@ metadata:
     name: iperf-config
     namespace: iperf
 data:
-    SERVER_ADDRESS: "iperf-server"
+    SERVER_ADDRESS: "iperf-server.iperf.svc.clusterset.local"
     INITIAL_SLEEP: "10"

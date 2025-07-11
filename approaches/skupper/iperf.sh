@@ -32,3 +32,5 @@ skupper expose deployment/iperf-server --port 5201 --context "$CLUSTER_1_CONTEXT
 
 kubectl config set-context "$CLUSTER_1_CONTEXT" --namespace=default
 kubectl config set-context "$CLUSTER_2_CONTEXT" --namespace=default
+
+rm "$CLUSTER_2_TOKEN_LOCATION"

@@ -84,3 +84,5 @@ linkerd --context="$CLUSTER_1_CONTEXT" multicluster check
 linkerd --context="$CLUSTER_1_CONTEXT" multicluster gateways
 linkerd --context="$CLUSTER_2_CONTEXT" multicluster check
 linkerd --context="$CLUSTER_2_CONTEXT" multicluster gateways
+
+rm "$ROOT_CERT_FILE" "$ROOT_KEY_FILE" "$ISSUER_CERT_FILE" "$ISSUER_KEY_FILE"

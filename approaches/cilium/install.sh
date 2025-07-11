@@ -56,3 +56,5 @@ cilium status --context "${CLUSTER_2_CONTEXT}" --wait
 approachinfo "Waiting for clusters to be connected"
 cilium clustermesh status --context "${CLUSTER_1_CONTEXT}" --wait
 cilium clustermesh status --context "${CLUSTER_2_CONTEXT}" --wait
+
+rm "${CILIUM_HELM_VALUES_FILE_1}" "${CILIUM_HELM_VALUES_FILE_2}"

@@ -33,6 +33,9 @@
 - name: Wait until there are any pods in the kube-system namespace
   shell: |
     while true; do
+      if sudo kubectl get pods -n kube-system --kubeconfig /etc/rancher/k3s/k3s.yaml | grep -q 'ContainerCreating'; then
+        break
+      fi
       if sudo kubectl get pods -n kube-system --kubeconfig /etc/rancher/k3s/k3s.yaml | grep -q 'Pending'; then
         break
       fi

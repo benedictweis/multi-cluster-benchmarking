@@ -39,7 +39,8 @@ linkerd install \
     --identity-issuer-key-file "$ISSUER_KEY_FILE" |
     kubectl apply --context "$CLUSTER_2_CONTEXT" -f -
 approachinfo "Installing Linkerd in cluster-1"
-linkerd install \
+sleep 5
+linkerd upgrade \
     --identity-trust-anchors-file "$ROOT_CERT_FILE" \
     --identity-issuer-certificate-file "$ISSUER_CERT_FILE" \
     --identity-issuer-key-file "$ISSUER_KEY_FILE" |

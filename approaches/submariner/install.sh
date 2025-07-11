@@ -16,3 +16,4 @@ subctl deploy-broker --context "$CLUSTER_1_CONTEXT"
 approachinfo "Joining clusters to broker"
 subctl join --context "$CLUSTER_1_CONTEXT" --label-gateway=true --clusterid "$CLUSTER_1_NAME" "$BROKER_FILE" --natt=false
 subctl join --context "$CLUSTER_2_CONTEXT" --label-gateway=true --clusterid "$CLUSTER_2_NAME" "$BROKER_FILE" --natt=false
+sleep 5

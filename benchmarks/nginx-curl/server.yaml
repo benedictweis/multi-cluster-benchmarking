@@ -1,22 +1,18 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-    name: nginx-server
-    namespace: nginx-curl
+  name: nginx-curl-server
+  namespace: nginx-curl
 spec:
-    replicas: 1
-    selector:
-        matchLabels:
-            app: nginx
-    template:
-        metadata:
-            labels:
-                app: nginx
-        spec:
-            containers:
-                - name: nginx
-                  image: nginx:latest
-            volumes:
-                - name: nginx-config-volume
-                  configMap:
-                      name: nginx-config
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx-curl-server
+  template:
+    metadata:
+      labels:
+        app: nginx-curl-server
+    spec:
+      containers:
+        - name: nginx-wrk-server
+          image: nginx:latest

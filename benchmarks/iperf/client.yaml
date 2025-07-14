@@ -1,34 +1,22 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-    name: iperf-client
-    namespace: iperf
+  name: iperf-client
+  namespace: iperf
 spec:
-    template:
-        metadata:
-            labels:
-                app: iperf-client
-        spec:
-            containers:
-                - name: iperf-client
-                  image: networkstatic/iperf3
-                  command:
-                      - "/bin/sh"
-                      - "-c"
-                      - >
-                          sleep ${INITIAL_SLEEP};
-                          iperf3 -c $SERVER_ADDRESS -J -t <<BENCHMARKS_N>>
-                  env:
-                      - name: SERVER_ADDRESS
-                        valueFrom:
-                            configMapKeyRef:
-                                name: iperf-config
-                                key: SERVER_ADDRESS
-                      - name: INITIAL_SLEEP
-                        valueFrom:
-                            configMapKeyRef:
-                                name: iperf-config
-                                key: INITIAL_SLEEP
-                                optional: true
-            restartPolicy: Never
-    backoffLimit: 4
+  template:
+    metadata:
+      labels:
+        app: iperf-client
+    spec:
+      containers:
+        - name: iperf-client
+          image: networkstatic/iperf3
+          command:
+            - "/bin/sh"
+            - "-c"
+            - >
+              sleep 10;
+              iperf3 -c ${SERVER_ADDRESS} -J -t ${BENCHMARKS_N}
+      restartPolicy: Never
+  backoffLimit: 4

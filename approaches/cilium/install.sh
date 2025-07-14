@@ -8,7 +8,6 @@ source ../../config.cfg
 source ../../helper.sh
 
 HELM_REPO_URL="https://helm.cilium.io/"
-CILIUM_HELM_VALUES_FILE="cilium.yaml"
 
 CLUSTER_1_CONTEXT=$(cat "../../$CONTEXT_1_FILE")
 CLUSTER_2_CONTEXT=$(cat "../../$CONTEXT_2_FILE")
@@ -28,7 +27,7 @@ fi
 
 approachinfo "Installing Cilium on cluster-1"
 CILIUM_HELM_VALUES_FILE_1=$(mktemp)
-envsubst <"${CLUSTER_1_NAME}/${CILIUM_HELM_VALUES_FILE}" >"${CILIUM_HELM_VALUES_FILE_1}"
+envsubst <"cilium-$CLUSTER_1_NAME.yaml" >"${CILIUM_HELM_VALUES_FILE_1}"
 helm upgrade --install --reset-values -n kube-system cilium cilium/cilium -f "${CILIUM_HELM_VALUES_FILE_1}" --kube-context "${CLUSTER_1_CONTEXT}"
 
 approachinfo "Setting up shared CA"
@@ -38,7 +37,7 @@ kubectl --context="${CLUSTER_1_CONTEXT}" get secret -n kube-system cilium-ca -o 
 
 approachinfo "Installing Cilium on cluster-2"
 CILIUM_HELM_VALUES_FILE_2=$(mktemp)
-envsubst <"${CLUSTER_2_NAME}/${CILIUM_HELM_VALUES_FILE}" >"${CILIUM_HELM_VALUES_FILE_2}"
+envsubst <"cilium-$CLUSTER_2_NAME.yaml" >"${CILIUM_HELM_VALUES_FILE_2}"
 helm upgrade --install --reset-values -n kube-system cilium cilium/cilium -f "${CILIUM_HELM_VALUES_FILE_2}" --kube-context "${CLUSTER_2_CONTEXT}"
 
 approachinfo "Scaling deployments"
@@ -49,7 +48,7 @@ approachinfo "Restarting all Cilium pods"
 kubectl --context="${CLUSTER_1_CONTEXT}" -n kube-system delete pod -l k8s-app=cilium
 kubectl --context="${CLUSTER_2_CONTEXT}" -n kube-system delete pod -l k8s-app=cilium
 
-approachinfo "Waiting for cluster to be ready"
+approachinfo "Waiting for cilium to be ready"
 cilium status --context "${CLUSTER_1_CONTEXT}" --wait
 cilium status --context "${CLUSTER_2_CONTEXT}" --wait
 

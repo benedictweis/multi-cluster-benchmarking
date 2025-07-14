@@ -1,38 +1,26 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-    name: nginx-curl-client
-    namespace: nginx-curl
+  name: nginx-curl-client
+  namespace: nginx-curl
 spec:
-    template:
-        metadata:
-            labels:
-                app: nginx-curl-client
-        spec:
-            containers:
-                - name: nginx-curl-client
-                  image: curlimages/curl
-                  command:
-                      - "/bin/sh"
-                      - "-c"
-                      - >
-                          sleep ${INITIAL_SLEEP};
-                          for i in $(seq 1 <<BENCHMARKS_N>>); do
-                            echo -n "Request $i: ";
-                            curl -o /dev/null --silent --show-error --fail -w "time_total=%{time_total}s\n" -H "Cache-Control: no-cache" -H "X-Unique: $(date)" -H "Connection: close" --http1.1 http://${SERVER_ADDRESS}:80;
-                            sleep 1;
-                          done
-                  env:
-                      - name: SERVER_ADDRESS
-                        valueFrom:
-                            configMapKeyRef:
-                                name: nginx-config
-                                key: SERVER_ADDRESS
-                      - name: INITIAL_SLEEP
-                        valueFrom:
-                            configMapKeyRef:
-                                name: nginx-config
-                                key: INITIAL_SLEEP
-                                optional: true
-            restartPolicy: Never
-    backoffLimit: 4
+  template:
+    metadata:
+      labels:
+        app: nginx-curl-client
+    spec:
+      containers:
+        - name: nginx-curl-client
+          image: curlimages/curl
+          command:
+            - "/bin/sh"
+            - "-c"
+            - >
+              sleep 10;
+              for i in $(seq 1 ${BENCHMARKS_N}); do
+                echo -n "Request ${DOLLAR}i: ";
+                curl -o /dev/null --silent --show-error --fail -w "time_total=%{time_total}s\n" -H "Cache-Control: no-cache" -H "X-Unique: $(date)" -H "Connection: close" --http1.1 http://${SERVER_ADDRESS}:80;
+                sleep 1;
+              done
+      restartPolicy: Never
+  backoffLimit: 4

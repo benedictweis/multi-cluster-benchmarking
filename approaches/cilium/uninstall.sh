@@ -13,3 +13,15 @@ CLUSTER_2_CONTEXT=$(cat "../../$CONTEXT_2_FILE")
 approachinfo "Uninstalling Cilium"
 helm upgrade --install --reset-values --version 1.17.5 -n kube-system cilium cilium/cilium --kube-context "${CLUSTER_1_CONTEXT}"
 helm upgrade --install --reset-values --version 1.17.5 -n kube-system cilium cilium/cilium --kube-context "${CLUSTER_2_CONTEXT}"
+
+approachinfo "Scaling deployments"
+kubectl -n kube-system scale deployment cilium-operator --replicas=1 --context "${CLUSTER_1_CONTEXT}"
+kubectl -n kube-system scale deployment cilium-operator --replicas=1 --context "${CLUSTER_2_CONTEXT}"
+
+approachinfo "Restarting all Cilium pods"
+kubectl --context="${CLUSTER_1_CONTEXT}" -n kube-system delete pod -l k8s-app=cilium
+kubectl --context="${CLUSTER_2_CONTEXT}" -n kube-system delete pod -l k8s-app=cilium
+
+approachinfo "Waiting for cilium to be ready"
+cilium status --context "${CLUSTER_1_CONTEXT}" --wait
+cilium status --context "${CLUSTER_2_CONTEXT}" --wait

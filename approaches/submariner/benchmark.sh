@@ -12,8 +12,10 @@ source ../../helper.sh
 CLUSTER_1_CONTEXT=$(cat "../../$CONTEXT_1_FILE")
 CLUSTER_2_CONTEXT=$(cat "../../$CONTEXT_2_FILE")
 
-approachinfo "Exposing iperf-server"
-kubectl --context "$CLUSTER_1_CONTEXT" --namespace iperf expose deployment/iperf-server --port 5201
+approachinfo "Exposing $BENCHMARK-server"
+kubectl --context "$CLUSTER_1_CONTEXT" --namespace $BENCHMARK expose deployment/$BENCHMARK-server --port 5201
 
 approachinfo "Exporting service"
-subctl export service --context "$CLUSTER_1_CONTEXT" --namespace iperf iperf-server
+subctl export service --context "$CLUSTER_1_CONTEXT" --namespace $BENCHMARK $BENCHMARK-server
+
+export SERVER_ADDRESS="$BENCHMARK-server.$BENCHMARK.svc.clusterset.local"

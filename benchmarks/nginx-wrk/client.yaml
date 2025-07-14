@@ -1,36 +1,25 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-    name: nginx-wrk-client
-    namespace: nginx-wrk
+  name: nginx-wrk-client
+  namespace: nginx-wrk
 spec:
-    template:
-        metadata:
-            labels:
-                app: nginx-wrk-client
-        spec:
-            containers:
-                - name: nginx-wrk-client
-                  image: openeuler/wrk
-                  command:
-                      - "/bin/sh"
-                      - "-c"
-                      - >
-                          sleep ${INITIAL_SLEEP};
-                          for i in $(seq 1 <<BENCHMARKS_N_DIV_10>>); do
-                              wrk -t12 -c400 -d10s http://${SERVER_ADDRESS}:80
-                          done
-                  env:
-                      - name: SERVER_ADDRESS
-                        valueFrom:
-                            configMapKeyRef:
-                                name: nginx-config
-                                key: SERVER_ADDRESS
-                      - name: INITIAL_SLEEP
-                        valueFrom:
-                            configMapKeyRef:
-                                name: nginx-config
-                                key: INITIAL_SLEEP
-                                optional: true
-            restartPolicy: Never
-    backoffLimit: 4
+  template:
+    metadata:
+      labels:
+        app: nginx-wrk-client
+    spec:
+      containers:
+        - name: nginx-wrk-client
+          image: openeuler/wrk
+          command:
+            - "/bin/sh"
+            - "-c"
+            - >
+              sleep 10;
+              for i in $(seq 1 ${BENCHMARKS_N_DIV_10}); do
+                  wrk -t12 -c400 -d10s http://${SERVER_ADDRESS}:80;
+                  sleep 1;
+              done
+      restartPolicy: Never
+  backoffLimit: 4

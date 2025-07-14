@@ -1,8 +1,0 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: nginx-config
-  namespace: nginx-wrk
-data:
-  SERVER_ADDRESS: "nginx-server"
-  INITIAL_SLEEP: "200"

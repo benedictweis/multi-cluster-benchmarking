@@ -42,7 +42,7 @@ linkerd install \
     kubectl apply --context "$CLUSTER_2_CONTEXT" -f -
 approachinfo "Installing Linkerd in cluster-1"
 sleep 5
-linkerd upgrade \
+linkerd install \
     --identity-trust-anchors-file "$ROOT_CERT_FILE" \
     --identity-issuer-certificate-file "$ISSUER_CERT_FILE" \
     --identity-issuer-key-file "$ISSUER_KEY_FILE" |
@@ -53,8 +53,8 @@ linkerd check --context "$CLUSTER_1_CONTEXT"
 linkerd check --context "$CLUSTER_2_CONTEXT"
 
 approachinfo "Installing Linkerd multicluster"
-linkerd multicluster install -f "$CLUSTER_1_NAME/linkerd.yaml" | kubectl apply --context "$CLUSTER_1_CONTEXT" -f -
-linkerd multicluster install -f "$CLUSTER_2_NAME/linkerd.yaml" | kubectl apply --context "$CLUSTER_2_CONTEXT" -f -
+linkerd multicluster install -f "linkerd-$CLUSTER_1_NAME.yaml" | kubectl apply --context "$CLUSTER_1_CONTEXT" -f -
+linkerd multicluster install -f "linkerd-$CLUSTER_2_NAME.yaml" | kubectl apply --context "$CLUSTER_2_CONTEXT" -f -
 
 kubectl label svc -n linkerd-multicluster linkerd-gateway mirror.linkerd.io/exported=true --context "$CLUSTER_1_CONTEXT" --overwrite
 kubectl label svc -n linkerd-multicluster linkerd-gateway mirror.linkerd.io/exported=true --context "$CLUSTER_2_CONTEXT" --overwrite

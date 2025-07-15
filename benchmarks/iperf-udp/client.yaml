@@ -16,7 +16,7 @@ spec:
             - "/bin/sh"
             - "-c"
             - >
-              sleep 10;
+              sleep 20;
               iperf3 -c ${SERVER_ADDRESS} -J -t ${BENCHMARKS_N} -u -b 50000000000
       restartPolicy: Never
   backoffLimit: 4

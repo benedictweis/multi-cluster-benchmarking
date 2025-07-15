@@ -32,4 +32,4 @@ approachinfo "Applying service manifest"
 kubectl --context="$CLUSTER_1_CONTEXT" apply -f - <<<"$SERVICE_MANIFEST"
 kubectl --context="$CLUSTER_2_CONTEXT" apply -f - <<<"$SERVICE_MANIFEST"
 
-export SERVER_ADDRESS=$BENCHMARK-server
+export SERVER_ADDRESS="$BENCHMARK-server.$BENCHMARK.svc.cluster.local"

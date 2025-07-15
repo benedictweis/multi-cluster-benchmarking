@@ -25,10 +25,6 @@ approachinfo "Annotating namespaces for Linkerd Sidecar injection"
 kubectl apply --context "$CLUSTER_1_CONTEXT" -f - <<<"$NAMESPACE_MANIFEST"
 kubectl apply --context "$CLUSTER_2_CONTEXT" -f - <<<"$NAMESPACE_MANIFEST"
 
-PORT=80
-if [[ "${BENCHMARK}" == "iperf" ]]; then
-    PORT=5201
-fi
 SERVICE_MANIFEST=$(
     cat <<EOF
 apiVersion: v1
@@ -42,9 +38,7 @@ spec:
     selector:
         app: $BENCHMARK-server
     ports:
-        - protocol: TCP
-          port: $PORT
-          targetPort: $PORT
+$PORTS
     type: ClusterIP
 EOF
 )

@@ -46,12 +46,42 @@ function clusters_destroy() {
     rm -rf "$CONTEXT_1_FILE" "$CONTEXT_2_FILE" "$KUBECONFIG_FILE"
 }
 
+function calculate_ports() {
+    export PORT=80
+    if [[ "$1" == iperf* ]]; then
+        export PORT=5201
+    fi
+    export PORTS=$(
+        cat <<EOF
+      - protocol: TCP
+        port: $PORT
+        targetPort: $PORT
+EOF
+    )
+    if [[ "$1" == iperf-udp ]]; then
+        export PORTS=$(
+            cat <<EOF
+      - name: iperf-tcp
+        protocol: TCP
+        port: $PORT
+        targetPort: $PORT
+      - name: iperf-udp
+        protocol: UDP
+        port: $PORT
+        targetPort: $PORT
+EOF
+        )
+    fi
+}
+
 function benchmark_approach() {
     local approach=$1
     local benchmark=$2
 
     CLUSTER_1_CONTEXT=$(cat $CONTEXT_1_FILE)
     CLUSTER_2_CONTEXT=$(cat $CONTEXT_2_FILE)
+
+    calculate_ports $benchmark
 
     info "[$PROVIDER $approach $benchmark] Creating namespace '$benchmark' in both clusters"
     kubectl create namespace "$benchmark" --context "$CLUSTER_1_CONTEXT" --dry-run=client -o yaml | kubectl apply -f - --context "$CLUSTER_1_CONTEXT"

@@ -86,7 +86,7 @@ class NginxWrkBenchmarkParser(BenchmarkDataParser):
         )
 
 
-class IperfBenchmarkParser(BenchmarkDataParser):
+class IperfTCPBenchmarkParser(BenchmarkDataParser):
     def parse(self, benchmark_files) -> BenchmarkRuns:
         benchmarks = []
         for filename in benchmark_files:
@@ -100,7 +100,7 @@ class IperfBenchmarkParser(BenchmarkDataParser):
                     continue
 
         return BenchmarkRuns(
-            plot_name='Iperf Network Throughput',
+            plot_name='Iperf TCP Network Throughput',
             measurement='Throughput',
             unit='Gbit/s',
             better='higher',
@@ -251,8 +251,10 @@ def get_parser_generator(benchmark_name: str, metrics_to_get: str) -> tuple[Benc
                     return NginxCurlBenchmarkParser(), BoxPlotGenerator()
                 case "nginx-wrk":
                     return NginxWrkBenchmarkParser(), BoxPlotGenerator()
-                case "iperf":
-                    return IperfBenchmarkParser(), BoxPlotGenerator()
+                case "iperf-tcp":
+                    return IperfTCPBenchmarkParser(), BoxPlotGenerator()
+                case "iperf-udp":
+                    return IperfUDPBenchmarkParser(), BoxPlotGenerator()
                 case _:
                     print(f"Unknown benchmark_name, metrics_to_get: {benchmark_name}, {metrics_to_get}")
                     sys.exit(1)

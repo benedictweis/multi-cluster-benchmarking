@@ -10,10 +10,6 @@ source ../../helper.sh
 CLUSTER_1_CONTEXT=$(cat "../../$CONTEXT_1_FILE")
 CLUSTER_2_CONTEXT=$(cat "../../$CONTEXT_2_FILE")
 
-PORT=80
-if [[ "${BENCHMARK}" == "iperf" ]]; then
-    PORT=5201
-fi
 SERVICE_MANIFEST=$(
     cat <<EOF
 apiVersion: v1
@@ -25,9 +21,7 @@ spec:
     selector:
         app: $BENCHMARK-server
     ports:
-        - protocol: TCP
-          port: $PORT
-          targetPort: $PORT
+$PORTS
     type: ClusterIP
 EOF
 )

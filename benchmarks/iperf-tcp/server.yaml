@@ -1,17 +1,17 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: iperf-server
-  namespace: iperf
+  name: iperf-tcp-server
+  namespace: iperf-tcp
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: iperf-server
+      app: iperf-tcp-server
   template:
     metadata:
       labels:
-        app: iperf-server
+        app: iperf-tcp-server
     spec:
       containers:
         - name: iperf-server

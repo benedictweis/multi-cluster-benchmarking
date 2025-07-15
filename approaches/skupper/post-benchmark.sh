@@ -27,11 +27,6 @@ skupper token create "$CLUSTER_2_TOKEN_LOCATION" --context "$CLUSTER_2_CONTEXT"
 approachinfo "Linking clusters"
 skupper link create "$CLUSTER_2_TOKEN_LOCATION" --context "$CLUSTER_1_CONTEXT"
 
-PORT=80
-if [[ "${BENCHMARK}" == "iperf" ]]; then
-    PORT=5201
-fi
-
 approachinfo "Exposing $BENCHMARK-server"
 skupper expose deployment/$BENCHMARK-server --port $PORT --context "$CLUSTER_1_CONTEXT"
 

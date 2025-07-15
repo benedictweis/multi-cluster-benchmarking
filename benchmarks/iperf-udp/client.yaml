@@ -1,0 +1,22 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: iperf-udp-client
+  namespace: iperf-udp
+spec:
+  template:
+    metadata:
+      labels:
+        app: iperf-udp-client
+    spec:
+      containers:
+        - name: iperf-udp-client
+          image: networkstatic/iperf3
+          command:
+            - "/bin/sh"
+            - "-c"
+            - >
+              sleep 10;
+              iperf3 -c ${SERVER_ADDRESS} -J -t ${BENCHMARKS_N} -u -b 50000000000
+      restartPolicy: Never
+  backoffLimit: 4

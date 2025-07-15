@@ -108,6 +108,28 @@ class IperfTCPBenchmarkParser(BenchmarkDataParser):
         )
 
 
+class IperfUDPBenchmarkParser(BenchmarkDataParser):
+    def parse(self, benchmark_files) -> BenchmarkRuns:
+        benchmarks = []
+        for filename in benchmark_files:
+            with open(filename, 'r') as f:
+                try:
+                    data = json.load(f)
+                    bps_list = [interval['sum']['bits_per_second'] / 1e9 for interval in data.get('intervals', [])]
+                    benchmarks.append(Benchmark(name=os.path.basename(filename), data=bps_list))
+                except Exception as e:
+                    logger.error(f"Error parsing iperf file {filename}: {e}")
+                    continue
+
+        return BenchmarkRuns(
+            plot_name='Iperf UDP Network Throughput',
+            measurement='Throughput',
+            unit='Gbit/s',
+            better='higher',
+            benchmarks=benchmarks
+        )
+
+
 class MemoryBenchmarkParser(BenchmarkDataParser):
     def parse(self, benchmark_files) -> BenchmarkRuns:
         benchmarks = []
@@ -142,22 +164,23 @@ class CPUBenchmarkParser(BenchmarkDataParser):
         for filename in benchmark_files:
             with open(filename, 'r') as f:
                 data = []
-                aggregated_cpu = 0
                 for line in f:
-                    if line.startswith("NAME") or not line.strip():
-                        data.append(aggregated_cpu)
-                        aggregated_cpu = 0
-                        continue
-                    parts = line.split()
-                    cpu_str = parts[1]
-                    cpu_val = float(cpu_str.replace("m", ""))
-                    aggregated_cpu += cpu_val
-                benchmarks.append(Benchmark(name=os.path.basename(filename), data=[max(data)]))
+                    if line.startswith("process_cpu_seconds_total"):
+                        try:
+                            value = float(line.strip().split()[-1])
+                            data.append(value)
+                        except Exception:
+                            logger.error(f"Error parsing CPU seconds from line: {line} in file: {filename}")
+                if len(data) >= 2:
+                    data = [data[-1] - data[0]]
+                else:
+                    data = [0.0]
+                benchmarks.append(Benchmark(name=os.path.basename(filename), data=data))
 
         return BenchmarkRuns(
             plot_name='CPU Seconds Used During Benchmark',
             measurement='CPU Seconds',
-            unit='m',
+            unit='s',
             better='lower',
             benchmarks=benchmarks
         )
@@ -285,7 +308,7 @@ def main():
             if f"{benchmark_name}-client" in fname:
                 benchmark_files.append(os.path.join(input_folder, fname))
         elif metrics_to_get == "memory" or metrics_to_get == "cpu":
-            if f"{benchmark_name}-metrics" in fname:
+            if f"{benchmark_name}-metrics-{metrics_to_get}" in fname:
                 benchmark_files.append(os.path.join(input_folder, fname))
     logging.info(f"Found benchmark files: {benchmark_files}")
     logging.info(f"Parsing benchmark files with {benchmark_parser.__class__.__name__}")

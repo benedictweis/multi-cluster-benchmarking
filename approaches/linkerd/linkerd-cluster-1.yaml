@@ -1,4 +1,0 @@
-controllers:
-    - link:
-          ref:
-              name: cluster-2

@@ -332,3 +332,5 @@ results
 context*.txt
 kubeconfig*.yaml
 .env
+hosts.ini
+vars.yaml

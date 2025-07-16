@@ -33,13 +33,20 @@ approachinfo "Installing Linkerd crds"
 linkerd install --crds | kubectl apply --context "$CLUSTER_1_CONTEXT" -f -
 linkerd install --crds | kubectl apply --context "$CLUSTER_2_CONTEXT" -f -
 
-approachinfo "Installing Linkerd in cluster-2"
+if [[ "$PROVIDER" == "kind" ]]; then
+    LINKERD_COMMAND="upgrade"
+else
+    LINKERD_COMMAND="install"
+fi
+
+approachinfo "Installing Linkerd in cluster-1"
 linkerd install \
     --identity-trust-anchors-file "$ROOT_CERT_FILE" \
     --identity-issuer-certificate-file "$ISSUER_CERT_FILE" \
     --identity-issuer-key-file "$ISSUER_KEY_FILE" |
     kubectl apply --context "$CLUSTER_1_CONTEXT" -f -
-linkerd install \
+approachinfo "Installing Linkerd in cluster-2"
+linkerd $LINKERD_COMMAND \
     --identity-trust-anchors-file "$ROOT_CERT_FILE" \
     --identity-issuer-certificate-file "$ISSUER_CERT_FILE" \
     --identity-issuer-key-file "$ISSUER_KEY_FILE" |
@@ -51,8 +58,8 @@ linkerd check --context "$CLUSTER_1_CONTEXT"
 linkerd check --context "$CLUSTER_2_CONTEXT"
 
 approachinfo "Installing Linkerd multicluster"
-linkerd multicluster install | kubectl apply --context "$CLUSTER_1_CONTEXT" -f -
-linkerd multicluster install | kubectl apply --context "$CLUSTER_2_CONTEXT" -f -
+linkerd multicluster install -f linkerd-cluster-1.yaml | kubectl apply --context "$CLUSTER_1_CONTEXT" -f -
+linkerd multicluster install -f linkerd-cluster-2.yaml | kubectl apply --context "$CLUSTER_2_CONTEXT" -f -
 
 kubectl label svc -n linkerd-multicluster linkerd-gateway mirror.linkerd.io/exported=true --context "$CLUSTER_1_CONTEXT" --overwrite
 kubectl label svc -n linkerd-multicluster linkerd-gateway mirror.linkerd.io/exported=true --context "$CLUSTER_2_CONTEXT" --overwrite
@@ -61,17 +68,15 @@ approachinfo "Checking Linkerd multicluster installation"
 linkerd multicluster check --context "$CLUSTER_1_CONTEXT"
 linkerd multicluster check --context "$CLUSTER_2_CONTEXT"
 
-approachinfo "Checking clusters"
-linkerd --context="$CLUSTER_2_CONTEXT" multicluster check
+sleep 10
 
 approachinfo "Linking clusters"
-linkerd --context="$CLUSTER_2_CONTEXT" multicluster link-gen --cluster-name cluster-2 |
-    kubectl --context="$CLUSTER_1_CONTEXT" apply -f -
-linkerd --context="$CLUSTER_1_CONTEXT" multicluster link-gen --cluster-name cluster-1 |
-    kubectl --context="$CLUSTER_2_CONTEXT" apply -f -
+linkerd --context="$CLUSTER_1_CONTEXT" multicluster link-gen --cluster-name "$CLUSTER_1_NAME" |
+  kubectl --context="$CLUSTER_2_CONTEXT" apply -f -
+linkerd --context="$CLUSTER_2_CONTEXT" multicluster link-gen --cluster-name "$CLUSTER_2_NAME" |
+  kubectl --context="$CLUSTER_1_CONTEXT" apply -f -
 
 approachinfo "Waiting for Linkerd gateways to have an external IP or hostname"
-
 wait_for_gateway linkerd-multicluster linkerd-gateway "$CLUSTER_1_CONTEXT"
 wait_for_gateway linkerd-multicluster linkerd-gateway "$CLUSTER_2_CONTEXT"
 

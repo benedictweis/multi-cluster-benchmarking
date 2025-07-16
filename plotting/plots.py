@@ -8,6 +8,7 @@ import pandas as pd
 import os
 from datetime import datetime
 import logging
+from statsmodels.formula.api import ols
 
 
 @dataclass
@@ -249,6 +250,18 @@ class StatsGenerator(BenchmarkOutputGenerator):
         stats = []
         for benchmark_run in benchmark_runs.benchmarks:
             series = pd.Series(benchmark_run.data)
+            x = np.arange(len(series))
+            y = series.values
+            df = pd.DataFrame({'x': x, 'y': y})
+            try:
+                model = ols('y ~ x', data=df).fit()
+                coef = float(model.params['x'])
+                std_err = float(model.bse['x'])
+                t_value = float(model.tvalues['x'])
+                p_value = float(model.pvalues['x'])
+                r_squared = float(model.rsquared)
+            except Exception:
+                coef = std_err = t_value = p_value = r_squared = None
             stat = {
                 'name': benchmark_run.name,
                 'min': float(series.min()),
@@ -257,7 +270,12 @@ class StatsGenerator(BenchmarkOutputGenerator):
                 'q3': float(series.quantile(0.75)),
                 'max': float(series.max()),
                 'mean': float(series.mean()),
-                'std': float(series.std())
+                'std': float(series.std()),
+                'coef': coef,
+                'std_err': std_err,
+                't_value': t_value,
+                'p_value': p_value,
+                'r_squared': r_squared
             }
             stats.append(stat)
 
@@ -310,6 +328,9 @@ def main():
         elif metrics_to_get == "memory" or metrics_to_get == "cpu":
             if f"{benchmark_name}-metrics-{metrics_to_get}" in fname:
                 benchmark_files.append(os.path.join(input_folder, fname))
+    if not benchmark_files or len(benchmark_files) == 0:
+        logging.error(f"No benchmark files found for {benchmark_name} in {input_folder}")
+        sys.exit(0)
     logging.info(f"Found benchmark files: {benchmark_files}")
     logging.info(f"Parsing benchmark files with {benchmark_parser.__class__.__name__}")
     benchmark_runs = benchmark_parser.parse(benchmark_files)

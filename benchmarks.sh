@@ -102,47 +102,42 @@ function benchmark_approach() {
 
     DATE=$(date +%Y%m%d%H%M%S)
     mkdir -p ./"$RESULTS_DIR"
-    if [[ "$benchmark" == "none" ]]; then
-        info "[$PROVIDER $approach $benchmark] Skipping benchmark execution as 'none' is selected"
-        read -p "Press key to continue.. " -n1 -s
-        echo
-    else
-        info "[$PROVIDER $approach $benchmark] Waiting for server pod to be scheduled in cluster 1"
-        until kubectl get pod -n "$benchmark" -l "$SERVER_LABEL" --context "$CLUSTER_1_CONTEXT" | grep "${benchmark}-server" >/dev/null 2>&1; do
-            sleep 1
-        done
-        info "[$PROVIDER $approach $benchmark] Waiting for server pod to be ready in cluster 1"
-        kubectl wait --for=condition=Ready pod -n "$benchmark" -l "$SERVER_LABEL" --context "$CLUSTER_1_CONTEXT" --timeout=30s
-        info "[$PROVIDER $approach $benchmark] Executing benchmark post script"
-        export BENCHMARK="$benchmark"
-        run_if_exists "$APPROACHES_DIR"/"$approach"/"post-$BENCHMARK_CUSTOM_FILE"
-        info "[$PROVIDER $approach $benchmark] Deploying benchmark client"
-        apply_if_exists "$BENCHMARKS_DIR/$benchmark/client.yaml" "$CLUSTER_2_CONTEXT" strict BENCHMARKS_N="$BENCHMARKS_N" BENCHMARKS_N_DIV_10="$BENCHMARKS_N_DIV_10"
-        info "[$PROVIDER $approach $benchmark] Waiting for client pod to be scheduled in cluster 2"
-        until kubectl get pod -n "$benchmark" -l "$CLIENT_LABEL" --context "$CLUSTER_2_CONTEXT" | grep "${benchmark}-client" >/dev/null 2>&1; do
-            sleep 1
-        done
-        info "[$PROVIDER $approach $benchmark] Waiting for client pod to be ready in cluster 2"
-        kubectl wait --for=condition=Ready pod -n "$benchmark" -l "$CLIENT_LABEL" --context "$CLUSTER_2_CONTEXT" --timeout=30s
-        info "[$PROVIDER $approach $benchmark] Running benchmark"
-        kubectl get --context "$CLUSTER_1_CONTEXT" --raw "/api/v1/nodes/$CLUSTER_1_CONTROL_PLANE_NAME/proxy/metrics" | grep "^process_cpu_seconds_total" >>"./$RESULTS_DIR/$PROVIDER-$approach-$benchmark-metrics-cpu-$CLUSTER_1_NAME-$DATE".log
-        kubectl get --context "$CLUSTER_2_CONTEXT" --raw "/api/v1/nodes/$CLUSTER_2_CONTROL_PLANE_NAME/proxy/metrics" | grep "^process_cpu_seconds_total" >>"./$RESULTS_DIR/$PROVIDER-$approach-$benchmark-metrics-cpu-$CLUSTER_2_NAME-$DATE".log
-        while true; do
-            sleep 1
-            kubectl top nodes --context $CLUSTER_1_CONTEXT >>"./$RESULTS_DIR/$PROVIDER-$approach-$benchmark-metrics-memory-$CLUSTER_1_NAME-$DATE".log
-            kubectl top nodes --context $CLUSTER_2_CONTEXT >>"./$RESULTS_DIR/$PROVIDER-$approach-$benchmark-metrics-memory-$CLUSTER_2_NAME-$DATE".log
-            STATUS=$(kubectl get pod -n $benchmark -l $CLIENT_LABEL --context $CLUSTER_2_CONTEXT -o json | jq -r ".items[0].status.containerStatuses[] | select(.name==\"${benchmark}-client\") | .state.terminated")
-            if [[ "$STATUS" != "null" ]]; then
-                echo "$CLIENT_LABEL container has terminated."
-                break
-            fi
-        done
-        for job in $(kubectl get jobs -n $benchmark -l $CLIENT_LABEL -o jsonpath='{.items[*].metadata.name}' --context="$CLUSTER_2_CONTEXT"); do
-            kubectl logs job/"$job" -n $benchmark -c "${benchmark}-client" --context="$CLUSTER_2_CONTEXT" >"./$RESULTS_DIR/$PROVIDER-$approach-$job-$DATE".log
-        done
-        kubectl get --context "$CLUSTER_1_CONTEXT" --raw "/api/v1/nodes/$CLUSTER_1_CONTROL_PLANE_NAME/proxy/metrics" | grep "^process_cpu_seconds_total" >>"./$RESULTS_DIR/$PROVIDER-$approach-$benchmark-metrics-cpu-$CLUSTER_1_NAME-$DATE".log
-        kubectl get --context "$CLUSTER_2_CONTEXT" --raw "/api/v1/nodes/$CLUSTER_2_CONTROL_PLANE_NAME/proxy/metrics" | grep "^process_cpu_seconds_total" >>"./$RESULTS_DIR/$PROVIDER-$approach-$benchmark-metrics-cpu-$CLUSTER_2_NAME-$DATE".log
-    fi
+
+    info "[$PROVIDER $approach $benchmark] Waiting for server pod to be scheduled in cluster 1"
+    until kubectl get pod -n "$benchmark" -l "$SERVER_LABEL" --context "$CLUSTER_1_CONTEXT" | grep "${benchmark}-server" >/dev/null 2>&1; do
+        sleep 1
+    done
+    info "[$PROVIDER $approach $benchmark] Waiting for server pod to be ready in cluster 1"
+    kubectl wait --for=condition=Ready pod -n "$benchmark" -l "$SERVER_LABEL" --context "$CLUSTER_1_CONTEXT" --timeout=30s
+    info "[$PROVIDER $approach $benchmark] Executing benchmark post script"
+    export BENCHMARK="$benchmark"
+    run_if_exists "$APPROACHES_DIR"/"$approach"/"post-$BENCHMARK_CUSTOM_FILE"
+    info "[$PROVIDER $approach $benchmark] Deploying benchmark client"
+    apply_if_exists "$BENCHMARKS_DIR/$benchmark/client.yaml" "$CLUSTER_2_CONTEXT" strict BENCHMARKS_N="$BENCHMARKS_N" BENCHMARKS_N_DIV_10="$BENCHMARKS_N_DIV_10"
+    info "[$PROVIDER $approach $benchmark] Waiting for client pod to be scheduled in cluster 2"
+    until kubectl get pod -n "$benchmark" -l "$CLIENT_LABEL" --context "$CLUSTER_2_CONTEXT" | grep "${benchmark}-client" >/dev/null 2>&1; do
+        sleep 1
+    done
+    info "[$PROVIDER $approach $benchmark] Waiting for client pod to be ready in cluster 2"
+    kubectl wait --for=condition=Ready pod -n "$benchmark" -l "$CLIENT_LABEL" --context "$CLUSTER_2_CONTEXT" --timeout=30s
+    info "[$PROVIDER $approach $benchmark] Running benchmark"
+    kubectl get --context "$CLUSTER_1_CONTEXT" --raw "/api/v1/nodes/$CLUSTER_1_CONTROL_PLANE_NAME/proxy/metrics" | grep "^process_cpu_seconds_total" >>"./$RESULTS_DIR/$PROVIDER-$approach-$benchmark-metrics-cpu-$CLUSTER_1_NAME-$DATE".log
+    kubectl get --context "$CLUSTER_2_CONTEXT" --raw "/api/v1/nodes/$CLUSTER_2_CONTROL_PLANE_NAME/proxy/metrics" | grep "^process_cpu_seconds_total" >>"./$RESULTS_DIR/$PROVIDER-$approach-$benchmark-metrics-cpu-$CLUSTER_2_NAME-$DATE".log
+    while true; do
+        sleep 1
+        kubectl top nodes --context $CLUSTER_1_CONTEXT >>"./$RESULTS_DIR/$PROVIDER-$approach-$benchmark-metrics-memory-$CLUSTER_1_NAME-$DATE".log
+        kubectl top nodes --context $CLUSTER_2_CONTEXT >>"./$RESULTS_DIR/$PROVIDER-$approach-$benchmark-metrics-memory-$CLUSTER_2_NAME-$DATE".log
+        STATUS=$(kubectl get pod -n $benchmark -l $CLIENT_LABEL --context $CLUSTER_2_CONTEXT -o json | jq -r ".items[0].status.containerStatuses[] | select(.name==\"${benchmark}-client\") | .state.terminated")
+        if [[ "$STATUS" != "null" ]]; then
+            echo "$CLIENT_LABEL container has terminated."
+            break
+        fi
+    done
+    for job in $(kubectl get jobs -n $benchmark -l $CLIENT_LABEL -o jsonpath='{.items[*].metadata.name}' --context="$CLUSTER_2_CONTEXT"); do
+        kubectl logs job/"$job" -n $benchmark -c "${benchmark}-client" --context="$CLUSTER_2_CONTEXT" >"./$RESULTS_DIR/$PROVIDER-$approach-$job-$DATE".log
+    done
+    kubectl get --context "$CLUSTER_1_CONTEXT" --raw "/api/v1/nodes/$CLUSTER_1_CONTROL_PLANE_NAME/proxy/metrics" | grep "^process_cpu_seconds_total" >>"./$RESULTS_DIR/$PROVIDER-$approach-$benchmark-metrics-cpu-$CLUSTER_1_NAME-$DATE".log
+    kubectl get --context "$CLUSTER_2_CONTEXT" --raw "/api/v1/nodes/$CLUSTER_2_CONTROL_PLANE_NAME/proxy/metrics" | grep "^process_cpu_seconds_total" >>"./$RESULTS_DIR/$PROVIDER-$approach-$benchmark-metrics-cpu-$CLUSTER_2_NAME-$DATE".log
 
     if [[ "${WAIT_BEFORE_CLEANUP-0}" == "1" ]]; then
         info "[$PROVIDER $approach $benchmark] Waiting for user input before cleanup"
@@ -161,9 +156,15 @@ function benchmarks() {
         info "[$PROVIDER $approach] Installing approach"
         run_if_exists "$APPROACHES_DIR/$approach/install.sh"
 
-        for benchmark in $BENCHMARKS; do
-            benchmark_approach "$approach" "$benchmark"
-        done
+        if [[ "$BENCHMARKS" == "none" ]]; then
+            info "[$PROVIDER $approach $BENCHMARKS] Skipping benchmark execution as 'none' is selected"
+            read -p "Press key to continue.. " -n1 -s
+            echo
+        else
+            for benchmark in $BENCHMARKS; do
+                benchmark_approach "$approach" "$benchmark"
+            done
+        fi
 
         info "[$PROVIDER $approach] Uninstalling approach"
         run_if_exists "$APPROACHES_DIR/$approach/uninstall.sh"

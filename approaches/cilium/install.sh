@@ -18,8 +18,8 @@ helm repo update
 
 approachinfo "Setting up network configuration"
 if [[ "${PROVIDER}" == "kind" ]]; then
-    export CLUSTER_1_CILIUM_APISERVER_IP="$NETWORK_PREFIX.159"
-    export CLUSTER_2_CILIUM_APISERVER_IP="$NETWORK_PREFIX.179"
+    export CLUSTER_1_CILIUM_APISERVER_IP="${NETWORK_PREFIX}159"
+    export CLUSTER_2_CILIUM_APISERVER_IP="${NETWORK_PREFIX}179"
 elif [[ "${PROVIDER}" == "k3s" ]]; then
     export CLUSTER_1_CILIUM_APISERVER_IP=$(kubectl --context "${CLUSTER_1_CONTEXT}" get node -l node-role.kubernetes.io/control-plane -o jsonpath='{.items[0].status.addresses[?(@.type=="InternalIP")].address}')
     export CLUSTER_2_CILIUM_APISERVER_IP=$(kubectl --context "${CLUSTER_2_CONTEXT}" get node -l node-role.kubernetes.io/control-plane -o jsonpath='{.items[0].status.addresses[?(@.type=="InternalIP")].address}')

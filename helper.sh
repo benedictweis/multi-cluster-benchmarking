@@ -38,13 +38,36 @@ wait_for_gateway() {
 
 if [[ $SET_NETWORK_PREFIX == "auto" ]]; then
     if docker network inspect kind &>/dev/null; then
-        NETWORK_PREFIX=$(docker network inspect -f '{{(index .IPAM.Config 0).Gateway}}' kind | cut -d '.' -f 1-3)
-        if [ -z "$NETWORK_PREFIX" ]; then
-            NETWORK_PREFIX=$(docker network inspect -f '{{(index .IPAM.Config 1).Gateway}}' kind | cut -d '.' -f 1-3)
+        NETWORK_PREFIX_1=$(docker network inspect -f '{{(index .IPAM.Config 0).Gateway}}' kind)
+        NETWORK_PREFIX_2=$(docker network inspect -f '{{(index .IPAM.Config 1).Gateway}}' kind)
+
+        if [[ "$NETWORK_PREFIX_1" == *:* ]]; then
+            NETWORK_PREFIX_1="$(echo "$NETWORK_PREFIX_1" | rev | cut -d ':' -f 2- | rev):"
+        else
+            NETWORK_PREFIX_1=$(echo "$NETWORK_PREFIX_1" | cut -d '.' -f 1-3)
+        fi
+
+        if [[ "$NETWORK_PREFIX_2" == *:* ]]; then
+            NETWORK_PREFIX_2="$(echo "$NETWORK_PREFIX_2" | rev | cut -d ':' -f 2- | rev):"
+        else
+            NETWORK_PREFIX_2=$(echo "$NETWORK_PREFIX_2" | cut -d '.' -f 1-3)
+        fi
+        if [[ "$PROVIDER" == *"ipv6"* ]]; then
+            if [[ "$NETWORK_PREFIX_1" == *:* ]]; then
+                NETWORK_PREFIX="$NETWORK_PREFIX_1"
+            else
+                NETWORK_PREFIX="$NETWORK_PREFIX_2"
+            fi
+        else
+            if [[ "$NETWORK_PREFIX_1" == *.* ]]; then
+                NETWORK_PREFIX="$NETWORK_PREFIX_1"
+            else
+                NETWORK_PREFIX="$NETWORK_PREFIX_2"
+            fi
         fi
         info "Docker network 'kind' exists, using its network prefix $NETWORK_PREFIX"
     else
-        NETWORK_PREFIX="172.17.0"
+        NETWORK_PREFIX="172.17.0."
         info "Docker network 'kind' does not exist, using default network prefix $NETWORK_PREFIX"
     fi
 else

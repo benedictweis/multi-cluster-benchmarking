@@ -17,6 +17,6 @@ spec:
             - "-c"
             - >
               sleep 20;
-              iperf3 -c ${SERVER_ADDRESS} -J -t ${BENCHMARKS_N} -u -b 50000000000
+              iperf3 -c ${SERVER_ADDRESS} -J -t ${BENCHMARKS_N} -u -b 50000000000 -P 6
       restartPolicy: Never
   backoffLimit: 4

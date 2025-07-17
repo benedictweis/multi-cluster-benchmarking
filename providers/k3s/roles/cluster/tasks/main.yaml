@@ -49,13 +49,14 @@
     sudo helm install --version 1.17.5 \
         -n kube-system cilium cilium/cilium \
         --set=ipam.operator.clusterPoolIPv4PodCIDRList={{ pod_cidr }} \
+        --set=ipam.mode=kubernetes \
+        --set=operator.replicas=1 \
         --kubeconfig /etc/rancher/k3s/k3s.yaml
   args:
     executable: /bin/bash
 
 - name: Wait for Cilium to be ready
   shell: |
-    sudo kubectl -n kube-system scale deployment cilium-operator --replicas=1 --kubeconfig /etc/rancher/k3s/k3s.yaml
     sudo kubectl -n kube-system rollout status daemonset/cilium --timeout=300s --kubeconfig /etc/rancher/k3s/k3s.yaml
   args:
     executable: /bin/bash

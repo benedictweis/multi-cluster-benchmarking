@@ -19,8 +19,8 @@ kubectl -n kube-system scale deployment cilium-operator --replicas=1 --context "
 kubectl -n kube-system scale deployment cilium-operator --replicas=1 --context "${CLUSTER_2_CONTEXT}"
 
 approachinfo "Restarting all Cilium pods"
-kubectl --context="${CLUSTER_1_CONTEXT}" -n kube-system delete pod -l k8s-app=cilium
-kubectl --context="${CLUSTER_2_CONTEXT}" -n kube-system delete pod -l k8s-app=cilium
+kubectl --context="${CLUSTER_1_CONTEXT}" -n kube-system delete pod -l "app.kubernetes.io/part-of=cilium"
+kubectl --context="${CLUSTER_2_CONTEXT}" -n kube-system delete pod -l "app.kubernetes.io/part-of=cilium"
 
 approachinfo "Waiting for cilium to be ready"
 cilium status --context "${CLUSTER_1_CONTEXT}" --wait

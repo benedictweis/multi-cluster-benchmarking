@@ -38,4 +38,4 @@
   shell: |
     cd "{{ ansible_env.HOME }}/multi-cluster-benchmarking"
     chmod +x ./docker.sh
-    sudo ./docker.sh sh -c "(cd ./providers/k3s && bash ./finish-setup.sh)"
+    sudo ./docker.sh bash ./providers/k3s/finish-setup.sh

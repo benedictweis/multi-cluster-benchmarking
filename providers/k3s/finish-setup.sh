@@ -49,11 +49,4 @@ for CLUSTER_NAME in "${CLUSTER_1_NAME}" "${CLUSTER_2_NAME}"; do
     info "[$PROVIDER $CLUSTER_NAME] Configuring l2 advertisement."
     export NODE_IP_ADDR=$(kubectl get node -l node-role.kubernetes.io/control-plane -o jsonpath='{.items[0].status.addresses[?(@.type=="InternalIP")].address}')
     envsubst <metallb-l2-advertisement.template.yaml | kubectl apply -f -
-
-    info "[$PROVIDER $CLUSTER_NAME] Deploying metrics server"
-    kubectl delete -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml --ignore-not-found
-    kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
-    kubectl patch deployment metrics-server -n kube-system --type='json' --patch-file=./metrics-server-patch.json
-    info "[$PROVIDER $CLUSTER_NAME] Waiting for metrics server deployment to be ready"
-    kubectl -n kube-system wait --for=condition=available --timeout=90s deployment/metrics-server
 done

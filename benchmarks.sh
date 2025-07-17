@@ -20,11 +20,11 @@ function show_help() {
     echo "Usage: $0 <command>"
     echo ""
     echo "Commands:"
-    echo "  clean-results               clean benchmark results, only affects benchmark .log files"
-    echo "  clusters-create             create clusters using configured provider"
-    echo "  clusters-destroy            destroy clusters using configured provider"
-    echo "  benchmarks                  run configured benchmarks with configure approaches on configured provider"
-    echo "  plot <benchmark> <dir>      generate plots from benchmark results"
+    echo "  clean-results        clean benchmark results, only affects benchmark .log files"
+    echo "  clusters-create      create clusters using configured provider"
+    echo "  clusters-destroy     destroy clusters using configured provider"
+    echo "  benchmarks           run configured benchmarks with configure approaches on configured provider"
+    echo "  plot <dir>           generate plots from benchmark results"
 }
 
 ### COMMAND FUNCTIONS ###
@@ -121,12 +121,12 @@ function benchmark_approach() {
     info "[$PROVIDER $approach $benchmark] Waiting for client pod to be ready in cluster 2"
     kubectl wait --for=condition=Ready pod -n "$benchmark" -l "$CLIENT_LABEL" --context "$CLUSTER_2_CONTEXT" --timeout=30s
     info "[$PROVIDER $approach $benchmark] Running benchmark"
-    kubectl get --context "$CLUSTER_1_CONTEXT" --raw "/api/v1/nodes/$CLUSTER_1_CONTROL_PLANE_NAME/proxy/metrics" | grep "^process_cpu_seconds_total" >>"./$RESULTS_DIR/$PROVIDER-$approach-$benchmark-metrics-cpu-$CLUSTER_1_NAME-$DATE".log
-    kubectl get --context "$CLUSTER_2_CONTEXT" --raw "/api/v1/nodes/$CLUSTER_2_CONTROL_PLANE_NAME/proxy/metrics" | grep "^process_cpu_seconds_total" >>"./$RESULTS_DIR/$PROVIDER-$approach-$benchmark-metrics-cpu-$CLUSTER_2_NAME-$DATE".log
+    kubectl get --context "$CLUSTER_1_CONTEXT" --raw "/api/v1/nodes/$CLUSTER_1_CONTROL_PLANE_NAME/proxy/metrics/cadvisor" | grep '^container_cpu_usage_seconds_total{container="",cpu="total",id="/"' >>"./$RESULTS_DIR/$PROVIDER-$approach-$benchmark-metrics-cpu-$CLUSTER_1_NAME-$DATE".log
+    kubectl get --context "$CLUSTER_2_CONTEXT" --raw "/api/v1/nodes/$CLUSTER_2_CONTROL_PLANE_NAME/proxy/metrics/cadvisor" | grep '^container_cpu_usage_seconds_total{container="",cpu="total",id="/"' >>"./$RESULTS_DIR/$PROVIDER-$approach-$benchmark-metrics-cpu-$CLUSTER_2_NAME-$DATE".log
     while true; do
         sleep 1
-        kubectl top nodes --context $CLUSTER_1_CONTEXT >>"./$RESULTS_DIR/$PROVIDER-$approach-$benchmark-metrics-memory-$CLUSTER_1_NAME-$DATE".log
-        kubectl top nodes --context $CLUSTER_2_CONTEXT >>"./$RESULTS_DIR/$PROVIDER-$approach-$benchmark-metrics-memory-$CLUSTER_2_NAME-$DATE".log
+        kubectl get --context "$CLUSTER_1_CONTEXT" --raw "/api/v1/nodes/$CLUSTER_1_CONTROL_PLANE_NAME/proxy/metrics/cadvisor" | grep '^container_memory_working_set_bytes{container="",id="/"' >> "./$RESULTS_DIR/$PROVIDER-$approach-$benchmark-metrics-memory-$CLUSTER_1_NAME-$DATE".log
+        kubectl get --context "$CLUSTER_2_CONTEXT" --raw "/api/v1/nodes/$CLUSTER_2_CONTROL_PLANE_NAME/proxy/metrics/cadvisor" | grep '^container_memory_working_set_bytes{container="",id="/"' >> "./$RESULTS_DIR/$PROVIDER-$approach-$benchmark-metrics-memory-$CLUSTER_2_NAME-$DATE".log
         STATUS=$(kubectl get pod -n $benchmark -l $CLIENT_LABEL --context $CLUSTER_2_CONTEXT -o json | jq -r ".items[0].status.containerStatuses[] | select(.name==\"${benchmark}-client\") | .state.terminated")
         if [[ "$STATUS" != "null" ]]; then
             echo "$CLIENT_LABEL container has terminated."
@@ -136,8 +136,8 @@ function benchmark_approach() {
     for job in $(kubectl get jobs -n $benchmark -l $CLIENT_LABEL -o jsonpath='{.items[*].metadata.name}' --context="$CLUSTER_2_CONTEXT"); do
         kubectl logs job/"$job" -n $benchmark -c "${benchmark}-client" --context="$CLUSTER_2_CONTEXT" >"./$RESULTS_DIR/$PROVIDER-$approach-$job-$DATE".log
     done
-    kubectl get --context "$CLUSTER_1_CONTEXT" --raw "/api/v1/nodes/$CLUSTER_1_CONTROL_PLANE_NAME/proxy/metrics" | grep "^process_cpu_seconds_total" >>"./$RESULTS_DIR/$PROVIDER-$approach-$benchmark-metrics-cpu-$CLUSTER_1_NAME-$DATE".log
-    kubectl get --context "$CLUSTER_2_CONTEXT" --raw "/api/v1/nodes/$CLUSTER_2_CONTROL_PLANE_NAME/proxy/metrics" | grep "^process_cpu_seconds_total" >>"./$RESULTS_DIR/$PROVIDER-$approach-$benchmark-metrics-cpu-$CLUSTER_2_NAME-$DATE".log
+    kubectl get --context "$CLUSTER_1_CONTEXT" --raw "/api/v1/nodes/$CLUSTER_1_CONTROL_PLANE_NAME/proxy/metrics/cadvisor" | grep '^container_cpu_usage_seconds_total{container="",cpu="total",id="/"' >>"./$RESULTS_DIR/$PROVIDER-$approach-$benchmark-metrics-cpu-$CLUSTER_1_NAME-$DATE".log
+    kubectl get --context "$CLUSTER_2_CONTEXT" --raw "/api/v1/nodes/$CLUSTER_2_CONTROL_PLANE_NAME/proxy/metrics/cadvisor" | grep '^container_cpu_usage_seconds_total{container="",cpu="total",id="/"' >>"./$RESULTS_DIR/$PROVIDER-$approach-$benchmark-metrics-cpu-$CLUSTER_2_NAME-$DATE".log
 
     if [[ "${WAIT_BEFORE_CLEANUP-0}" == "1" ]]; then
         info "[$PROVIDER $approach $benchmark] Waiting for user input before cleanup"

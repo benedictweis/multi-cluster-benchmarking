@@ -137,18 +137,23 @@ class MemoryBenchmarkParser(BenchmarkDataParser):
         for filename in benchmark_files:
             with open(filename, 'r') as f:
                 data = []
-                aggregated_memory = 0
                 for line in f:
-                    if line.startswith("NAME") or not line.strip():
-                        data.append(aggregated_memory)
-                        aggregated_memory = 0
-                        continue    
-                    parts = line.split()
-                    mem_str = parts[3]
-                    mem_val = float(mem_str.replace("Mi", ""))
-                    aggregated_memory += mem_val
-                logger.info(f"Parsed memory data from {filename}: {max(data)}")
-                benchmarks.append(Benchmark(name=os.path.basename(filename), data=[max(data)]))
+                    line = line.strip()
+                    if not line or line.startswith("container_memory_working_set_bytes"):
+                        try:
+                            parts = line.split()
+                            if len(parts) >= 2:
+                                mem_bytes = float(parts[-2])
+                                mem_mib = mem_bytes / (1024 * 1024)
+                                data.append(mem_mib)
+                        except Exception:
+                            logger.error(f"Error parsing memory from line: {line} in file: {filename}")
+                if data:
+                    max_mem = max(data)
+                else:
+                    max_mem = 0.0
+                logger.info(f"Parsed memory data from {filename}: {max_mem} Mi")
+                benchmarks.append(Benchmark(name=os.path.basename(filename), data=[max_mem]))
 
         return BenchmarkRuns(
             plot_name='Peak Memory Usage During Benchmark',
@@ -166,9 +171,10 @@ class CPUBenchmarkParser(BenchmarkDataParser):
             with open(filename, 'r') as f:
                 data = []
                 for line in f:
-                    if line.startswith("process_cpu_seconds_total"):
+                    if line.startswith("container_cpu_usage_seconds_total"):
                         try:
-                            value = float(line.strip().split()[-1])
+                            # The value is the second-to-last field (usage seconds)
+                            value = float(line.strip().split()[-2])
                             data.append(value)
                         except Exception:
                             logger.error(f"Error parsing CPU seconds from line: {line} in file: {filename}")

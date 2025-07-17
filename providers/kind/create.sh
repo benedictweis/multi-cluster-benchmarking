@@ -19,7 +19,6 @@ for CLUSTER_NAME in "${CLUSTER_1_NAME}" "${CLUSTER_2_NAME}"; do
     helm repo update
     helm upgrade --install --reset-values --version 1.17.5 -n kube-system cilium cilium/cilium \
         --set ipam.mode=kubernetes
-
     kubectl -n kube-system scale deployment cilium-operator --replicas=1
 
     info "[$PROVIDER $CLUSTER_NAME] Waiting for Cilium to be ready"
@@ -45,13 +44,6 @@ for CLUSTER_NAME in "${CLUSTER_1_NAME}" "${CLUSTER_2_NAME}"; do
         export END_GROUP=200
     fi
     envsubst <metallb-l2-advertisement.template.yaml | kubectl apply -f -
-
-    info "[$PROVIDER $CLUSTER_NAME] Deploying metrics server"
-    kubectl delete -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml --ignore-not-found
-    kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
-    kubectl patch deployment metrics-server -n kube-system --type='json' --patch-file=./metrics-server-patch.json
-    info "[$PROVIDER $CLUSTER_NAME] Waiting for metrics server deployment to be ready"
-    kubectl -n kube-system wait --for=condition=available --timeout=90s deployment/metrics-server
 done
 
 info "[$PROVIDER] Writing cluster contexts to files"

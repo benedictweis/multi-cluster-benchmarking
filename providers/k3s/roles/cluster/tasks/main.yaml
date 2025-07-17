@@ -26,7 +26,7 @@
 
 - name: Install K3s with custom options
   shell: |
-    curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC='--disable cni --disable traefik --disable servicelb --disable-network-policy --flannel-backend=none --cluster-cidr={{ pod_cidr }} --service-cidr={{ service_cidr }}' sh -
+    curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC='--disable cni --disable traefik --disable servicelb --disable metrics-server --disable-network-policy --flannel-backend=none --cluster-cidr={{ pod_cidr }} --service-cidr={{ service_cidr }}' sh -
   args:
     executable: /bin/bash
 

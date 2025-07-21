@@ -44,13 +44,13 @@ if [[ $SET_NETWORK_PREFIX == "auto" ]]; then
         if [[ "$NETWORK_PREFIX_1" == *:* ]]; then
             NETWORK_PREFIX_1="$(echo "$NETWORK_PREFIX_1" | rev | cut -d ':' -f 2- | rev):"
         else
-            NETWORK_PREFIX_1=$(echo "$NETWORK_PREFIX_1" | cut -d '.' -f 1-3)
+            NETWORK_PREFIX_1="$(echo "$NETWORK_PREFIX_1" | cut -d '.' -f 1-3)."
         fi
 
         if [[ "$NETWORK_PREFIX_2" == *:* ]]; then
             NETWORK_PREFIX_2="$(echo "$NETWORK_PREFIX_2" | rev | cut -d ':' -f 2- | rev):"
         else
-            NETWORK_PREFIX_2=$(echo "$NETWORK_PREFIX_2" | cut -d '.' -f 1-3)
+            NETWORK_PREFIX_2="$(echo "$NETWORK_PREFIX_2" | cut -d '.' -f 1-3)."
         fi
         if [[ "$PROVIDER" == *"ipv6"* ]]; then
             if [[ "$NETWORK_PREFIX_1" == *:* ]]; then

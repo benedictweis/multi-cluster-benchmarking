@@ -50,6 +50,8 @@ function calculate_ports() {
     export PORT=80
     if [[ "$1" == iperf* ]]; then
         export PORT=5201
+    elif [[ "$1" == *grpc* ]]; then
+        export PORT=9000
     fi
     export PORTS=$(
         cat <<EOF

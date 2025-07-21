@@ -12,5 +12,11 @@ INVENTORY_FILE="$TERRAFORM_DIR/hosts.ini"
 INSTANCE_VARS_FILE="$TERRAFORM_DIR/vars.yaml"
 USERNAME="admin"
 
+info "[$PROVIDER] Applying Terraform configuration"
+pushd "$TERRAFORM_DIR" > /dev/null
+tofu init
+tofu apply -auto-approve
+popd > /dev/null
+
 info "[$PROVIDER] Creating clusters with Ansible"
 ansible-playbook -i "$INVENTORY_FILE" ./clusters.yaml -e @"$INSTANCE_VARS_FILE" -u "$USERNAME"

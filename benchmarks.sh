@@ -76,24 +76,40 @@ EOF
     fi
 }
 
+function benchmark_uses_payload_size() {
+    local benchmark=$1
+    if [[ "$benchmark" == iperf-udp ]]; then
+        return 0
+    else
+        return 1
+    fi
+}
+
 function benchmark_approach() {
     local approach=$1
     local benchmark=$2
+    local payload_size=$3
 
     CLUSTER_1_CONTEXT=$(cat $CONTEXT_1_FILE)
     CLUSTER_2_CONTEXT=$(cat $CONTEXT_2_FILE)
 
+    if [[ "$benchmark" == *iperf* && "$payload_size" =~ ^[0-9]+[mM][bB]$ ]]; then
+        info "[$PROVIDER $approach $benchmark $payload_size] Skipping: iperf does not support MB payload size"
+        return 0
+    fi
+
     calculate_ports $benchmark
 
-    info "[$PROVIDER $approach $benchmark] Creating namespace '$benchmark' in both clusters"
+    info "[$PROVIDER $approach $benchmark $payload_size] Creating namespace '$benchmark' in both clusters"
     kubectl create namespace "$benchmark" --context "$CLUSTER_1_CONTEXT" --dry-run=client -o yaml | kubectl apply -f - --context "$CLUSTER_1_CONTEXT"
     kubectl create namespace "$benchmark" --context "$CLUSTER_2_CONTEXT" --dry-run=client -o yaml | kubectl apply -f - --context "$CLUSTER_2_CONTEXT"
 
-    info "[$PROVIDER $approach $benchmark] Executing benchmark script"
+    info "[$PROVIDER $approach $benchmark $payload_size] Executing benchmark script"
     export BENCHMARK="$benchmark"
+    export PAYLOAD_SIZE="$payload_size"
     run_if_exists "$APPROACHES_DIR"/"$approach"/"$BENCHMARK_CUSTOM_FILE"
 
-    info "[$PROVIDER $approach $benchmark] Deploying benchmark server"
+    info "[$PROVIDER $approach $benchmark $payload_size] Deploying benchmark server"
     apply_if_exists "$BENCHMARKS_DIR/$benchmark/server.yaml" "$CLUSTER_1_CONTEXT" strict
 
     CLIENT_LABEL="app=${benchmark}-client"
@@ -105,30 +121,31 @@ function benchmark_approach() {
     DATE=$(date +%Y%m%d%H%M%S)
     mkdir -p ./"$RESULTS_DIR"
 
-    info "[$PROVIDER $approach $benchmark] Waiting for server pod to be scheduled in cluster 1"
+    info "[$PROVIDER $approach $benchmark $payload_size] Waiting for server pod to be scheduled in cluster 1"
     until kubectl get pod -n "$benchmark" -l "$SERVER_LABEL" --context "$CLUSTER_1_CONTEXT" | grep "${benchmark}-server" >/dev/null 2>&1; do
         sleep 1
     done
-    info "[$PROVIDER $approach $benchmark] Waiting for server pod to be ready in cluster 1"
-    kubectl wait --for=condition=Ready pod -n "$benchmark" -l "$SERVER_LABEL" --context "$CLUSTER_1_CONTEXT" --timeout=30s
-    info "[$PROVIDER $approach $benchmark] Executing benchmark post script"
+    info "[$PROVIDER $approach $benchmark $payload_size] Waiting for server pod to be ready in cluster 1"
+    kubectl wait --for=condition=Ready pod -n "$benchmark" -l "$SERVER_LABEL" --context "$CLUSTER_1_CONTEXT" --timeout="$RESOURCE_CREATE_TIMEOUT"
+    info "[$PROVIDER $approach $benchmark $payload_size] Executing benchmark post script"
     export BENCHMARK="$benchmark"
+    export PAYLOAD_SIZE="$payload_size"
     run_if_exists "$APPROACHES_DIR"/"$approach"/"post-$BENCHMARK_CUSTOM_FILE"
-    info "[$PROVIDER $approach $benchmark] Deploying benchmark client"
+    info "[$PROVIDER $approach $benchmark $payload_size] Deploying benchmark client"
     apply_if_exists "$BENCHMARKS_DIR/$benchmark/client.yaml" "$CLUSTER_2_CONTEXT" strict BENCHMARKS_N="$BENCHMARKS_N" BENCHMARKS_N_DIV_10="$BENCHMARKS_N_DIV_10"
-    info "[$PROVIDER $approach $benchmark] Waiting for client pod to be scheduled in cluster 2"
+    info "[$PROVIDER $approach $benchmark $payload_size] Waiting for client pod to be scheduled in cluster 2"
     until kubectl get pod -n "$benchmark" -l "$CLIENT_LABEL" --context "$CLUSTER_2_CONTEXT" | grep "${benchmark}-client" >/dev/null 2>&1; do
         sleep 1
     done
-    info "[$PROVIDER $approach $benchmark] Waiting for client pod to be ready in cluster 2"
-    kubectl wait --for=condition=Ready pod -n "$benchmark" -l "$CLIENT_LABEL" --context "$CLUSTER_2_CONTEXT" --timeout=30s
-    info "[$PROVIDER $approach $benchmark] Running benchmark"
-    kubectl get --context "$CLUSTER_1_CONTEXT" --raw "/api/v1/nodes/$CLUSTER_1_CONTROL_PLANE_NAME/proxy/metrics/cadvisor" | grep '^container_cpu_usage_seconds_total{container="",cpu="total",id="/"' >>"./$RESULTS_DIR/$PROVIDER-$approach-$benchmark-metrics-cpu-$CLUSTER_1_NAME-$DATE".log
-    kubectl get --context "$CLUSTER_2_CONTEXT" --raw "/api/v1/nodes/$CLUSTER_2_CONTROL_PLANE_NAME/proxy/metrics/cadvisor" | grep '^container_cpu_usage_seconds_total{container="",cpu="total",id="/"' >>"./$RESULTS_DIR/$PROVIDER-$approach-$benchmark-metrics-cpu-$CLUSTER_2_NAME-$DATE".log
+    info "[$PROVIDER $approach $benchmark $payload_size] Waiting for client pod to be ready in cluster 2"
+    kubectl wait --for=condition=Ready pod -n "$benchmark" -l "$CLIENT_LABEL" --context "$CLUSTER_2_CONTEXT" --timeout="$RESOURCE_CREATE_TIMEOUT"
+    info "[$PROVIDER $approach $benchmark $payload_size] Running benchmark"
+    kubectl get --context "$CLUSTER_1_CONTEXT" --raw "/api/v1/nodes/$CLUSTER_1_CONTROL_PLANE_NAME/proxy/metrics/cadvisor" | grep '^container_cpu_usage_seconds_total{container="",cpu="total",id="/"' >>"./$RESULTS_DIR/$PROVIDER-$approach-$benchmark-metrics-cpu-P$payload_size-$CLUSTER_1_NAME-$DATE".log
+    kubectl get --context "$CLUSTER_2_CONTEXT" --raw "/api/v1/nodes/$CLUSTER_2_CONTROL_PLANE_NAME/proxy/metrics/cadvisor" | grep '^container_cpu_usage_seconds_total{container="",cpu="total",id="/"' >>"./$RESULTS_DIR/$PROVIDER-$approach-$benchmark-metrics-cpu-P$payload_size-$CLUSTER_2_NAME-$DATE".log
     while true; do
         sleep 1
-        kubectl get --context "$CLUSTER_1_CONTEXT" --raw "/api/v1/nodes/$CLUSTER_1_CONTROL_PLANE_NAME/proxy/metrics/cadvisor" | grep '^container_memory_working_set_bytes{container="",id="/"' >> "./$RESULTS_DIR/$PROVIDER-$approach-$benchmark-metrics-memory-$CLUSTER_1_NAME-$DATE".log
-        kubectl get --context "$CLUSTER_2_CONTEXT" --raw "/api/v1/nodes/$CLUSTER_2_CONTROL_PLANE_NAME/proxy/metrics/cadvisor" | grep '^container_memory_working_set_bytes{container="",id="/"' >> "./$RESULTS_DIR/$PROVIDER-$approach-$benchmark-metrics-memory-$CLUSTER_2_NAME-$DATE".log
+        kubectl get --context "$CLUSTER_1_CONTEXT" --raw "/api/v1/nodes/$CLUSTER_1_CONTROL_PLANE_NAME/proxy/metrics/cadvisor" | grep '^container_memory_working_set_bytes{container="",id="/"' >> "./$RESULTS_DIR/$PROVIDER-$approach-$benchmark-metrics-memory-P$payload_size-$CLUSTER_1_NAME-$DATE".log
+        kubectl get --context "$CLUSTER_2_CONTEXT" --raw "/api/v1/nodes/$CLUSTER_2_CONTROL_PLANE_NAME/proxy/metrics/cadvisor" | grep '^container_memory_working_set_bytes{container="",id="/"' >> "./$RESULTS_DIR/$PROVIDER-$approach-$benchmark-metrics-memory-P$payload_size-$CLUSTER_2_NAME-$DATE".log
         STATUS=$(kubectl get pod -n $benchmark -l $CLIENT_LABEL --context $CLUSTER_2_CONTEXT -o json | jq -r ".items[0].status.containerStatuses[] | select(.name==\"${benchmark}-client\") | .state.terminated")
         if [[ "$STATUS" != "null" ]]; then
             echo "$CLIENT_LABEL container has terminated."
@@ -136,18 +153,18 @@ function benchmark_approach() {
         fi
     done
     for job in $(kubectl get jobs -n $benchmark -l $CLIENT_LABEL -o jsonpath='{.items[*].metadata.name}' --context="$CLUSTER_2_CONTEXT"); do
-        kubectl logs job/"$job" -n $benchmark -c "${benchmark}-client" --context="$CLUSTER_2_CONTEXT" >"./$RESULTS_DIR/$PROVIDER-$approach-$job-$DATE".log
+        kubectl logs job/"$job" -n $benchmark -c "${benchmark}-client" --context="$CLUSTER_2_CONTEXT" >"./$RESULTS_DIR/$PROVIDER-$approach-$job-P$payload_size-$DATE".log
     done
-    kubectl get --context "$CLUSTER_1_CONTEXT" --raw "/api/v1/nodes/$CLUSTER_1_CONTROL_PLANE_NAME/proxy/metrics/cadvisor" | grep '^container_cpu_usage_seconds_total{container="",cpu="total",id="/"' >>"./$RESULTS_DIR/$PROVIDER-$approach-$benchmark-metrics-cpu-$CLUSTER_1_NAME-$DATE".log
-    kubectl get --context "$CLUSTER_2_CONTEXT" --raw "/api/v1/nodes/$CLUSTER_2_CONTROL_PLANE_NAME/proxy/metrics/cadvisor" | grep '^container_cpu_usage_seconds_total{container="",cpu="total",id="/"' >>"./$RESULTS_DIR/$PROVIDER-$approach-$benchmark-metrics-cpu-$CLUSTER_2_NAME-$DATE".log
+    kubectl get --context "$CLUSTER_1_CONTEXT" --raw "/api/v1/nodes/$CLUSTER_1_CONTROL_PLANE_NAME/proxy/metrics/cadvisor" | grep '^container_cpu_usage_seconds_total{container="",cpu="total",id="/"' >>"./$RESULTS_DIR/$PROVIDER-$approach-$benchmark-metrics-cpu-P$payload_size-$CLUSTER_1_NAME-$DATE".log
+    kubectl get --context "$CLUSTER_2_CONTEXT" --raw "/api/v1/nodes/$CLUSTER_2_CONTROL_PLANE_NAME/proxy/metrics/cadvisor" | grep '^container_cpu_usage_seconds_total{container="",cpu="total",id="/"' >>"./$RESULTS_DIR/$PROVIDER-$approach-$benchmark-metrics-cpu-P$payload_size-$CLUSTER_2_NAME-$DATE".log
 
     if [[ "${WAIT_BEFORE_CLEANUP-0}" == "1" ]]; then
-        info "[$PROVIDER $approach $benchmark] Waiting for user input before cleanup"
+        info "[$PROVIDER $approach $benchmark $payload_size] Waiting for user input before cleanup"
         read -p "Press key to continue.. " -n1 -s
         echo
     fi
 
-    info "[$PROVIDER $approach $benchmark] Deleting namespace '$benchmark' in both clusters"
+    info "[$PROVIDER $approach $benchmark $payload_size] Deleting namespace '$benchmark' in both clusters"
     kubectl delete namespace "$benchmark" --context "$CLUSTER_1_CONTEXT" --ignore-not-found --wait
     kubectl delete namespace "$benchmark" --context "$CLUSTER_2_CONTEXT" --ignore-not-found --wait
 }
@@ -164,7 +181,16 @@ function benchmarks() {
             echo
         else
             for benchmark in $BENCHMARKS; do
-                benchmark_approach "$approach" "$benchmark"
+                if ! benchmark_uses_payload_size "$benchmark"; then
+                    INTERNAL_PAYLOAD_SIZES="$PAYLOAD_SIZES"
+                    info "[$PROVIDER $approach $benchmark] Using payload sizes: $INTERNAL_PAYLOAD_SIZES"
+                else
+                    INTERNAL_PAYLOAD_SIZES="1"
+                    info "[$PROVIDER $approach $benchmark] Using default payload size: $INTERNAL_PAYLOAD_SIZES"
+                fi
+                for payload_size in $INTERNAL_PAYLOAD_SIZES; do
+                    benchmark_approach "$approach" "$benchmark" "$payload_size"
+                done
             done
         fi
 

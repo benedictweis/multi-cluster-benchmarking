@@ -5,11 +5,11 @@ BLUE="\e[34m"
 ENDCOLOR="\e[0m"
 
 function info() {
-    echo -e "${BLUE}=> ${1}${ENDCOLOR}"
+    echo -e "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') ${1}${ENDCOLOR}"
 }
 
 function approachinfo() {
-    echo -e "${GREEN}=> ${1}${ENDCOLOR}"
+    echo -e "${GREEN}$(date '+%Y-%m-%d %H:%M:%S') ${1}${ENDCOLOR}"
 }
 
 wait_for_gateway() {

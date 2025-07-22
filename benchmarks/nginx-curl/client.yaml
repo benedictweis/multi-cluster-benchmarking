@@ -18,8 +18,17 @@ spec:
             - >
               sleep 10;
               for i in $(seq 1 ${BENCHMARKS_N}); do
+                dd if=/dev/urandom of=payload.bin bs=${PAYLOAD_SIZE} count=1
                 echo -n "Request ${DOLLAR}i: ";
-                curl -o /dev/null --silent --show-error --fail -w "time_total=%{time_total}s\n" -H "Cache-Control: no-cache" -H "X-Unique: $(date)" -H "Connection: close" --http1.1 http://${SERVER_ADDRESS}:80;
+                curl -o /dev/null --silent --show-error --fail \
+                  -w "time_total=%{time_total}s\n" \
+                  -H "Cache-Control: no-cache" \
+                  -H "X-Unique: $(date)" \
+                  -H "Connection: close" \
+                  --http1.1 \
+                  -X POST \
+                  --data-binary @payload.bin \
+                  http://${SERVER_ADDRESS}:80
                 sleep 1;
               done
       restartPolicy: Never

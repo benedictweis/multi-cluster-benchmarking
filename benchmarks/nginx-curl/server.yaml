@@ -16,3 +16,35 @@ spec:
       containers:
         - name: nginx-wrk-server
           image: nginx:latest
+          volumeMounts:
+            - name: nginx-curl-config
+              mountPath: /etc/nginx/conf.d/default.conf
+              subPath: default.conf
+      volumes:
+        - name: nginx-curl-config
+          configMap:
+            name: nginx-curl-config
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-curl-config
+  namespace: nginx-curl
+data:
+  default.conf: |
+    server {
+        listen 80;
+        server_name _;
+
+        client_max_body_size 200m;
+
+        location / {
+            # Allow all methods including POST
+            limit_except GET POST {
+                deny all;
+            }
+
+            return 200 "OK\n";
+            add_header Content-Type text/plain;
+        }
+    }

@@ -50,8 +50,6 @@ function calculate_ports() {
     export PORT=80
     if [[ "$1" == iperf* ]]; then
         export PORT=5201
-    elif [[ "$1" == *grpc* ]]; then
-        export PORT=9000
     fi
     export PORTS=$(
         cat <<EOF
@@ -73,15 +71,6 @@ EOF
         targetPort: $PORT
 EOF
         )
-    fi
-}
-
-function benchmark_uses_payload_size() {
-    local benchmark=$1
-    if [[ "$benchmark" == iperf-udp ]]; then
-        return 0
-    else
-        return 1
     fi
 }
 
@@ -181,12 +170,12 @@ function benchmarks() {
             echo
         else
             for benchmark in $BENCHMARKS; do
-                if ! benchmark_uses_payload_size "$benchmark"; then
+                if [[ "$benchmark" == *-pld ]]; then
                     INTERNAL_PAYLOAD_SIZES="$PAYLOAD_SIZES"
                     info "[$PROVIDER $approach $benchmark] Using payload sizes: $INTERNAL_PAYLOAD_SIZES"
                 else
-                    INTERNAL_PAYLOAD_SIZES="1"
-                    info "[$PROVIDER $approach $benchmark] Using default payload size: $INTERNAL_PAYLOAD_SIZES"
+                    INTERNAL_PAYLOAD_SIZES="none"
+                    info "[$PROVIDER $approach $benchmark] Using no payload size: $INTERNAL_PAYLOAD_SIZES"
                 fi
                 for payload_size in $INTERNAL_PAYLOAD_SIZES; do
                     benchmark_approach "$approach" "$benchmark" "$payload_size"

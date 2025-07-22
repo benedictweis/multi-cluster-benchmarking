@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-wrk-pld-server
+  namespace: nginx-wrk-pld
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx-wrk-pld-server
+  template:
+    metadata:
+      labels:
+        app: nginx-wrk-pld-server
+    spec:
+      containers:
+        - name: nginx-wrk-pld-server
+          image: nginx:latest
+          volumeMounts:
+            - name: nginx-wrk-pld-config
+              mountPath: /etc/nginx/conf.d/default.conf
+              subPath: default.conf
+      volumes:
+        - name: nginx-wrk-pld-config
+          configMap:
+            name: nginx-wrk-pld-config
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-wrk-pld-config
+  namespace: nginx-wrk-pld
+data:
+  default.conf: |
+    server {
+        listen 80;
+        server_name _;
+
+        client_max_body_size 200m;
+
+        location / {
+            # Allow all methods including POST
+            limit_except GET POST {
+                deny all;
+            }
+
+            return 200 "OK\n";
+            add_header Content-Type text/plain;
+        }
+    }

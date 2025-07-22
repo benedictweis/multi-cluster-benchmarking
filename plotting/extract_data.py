@@ -4,6 +4,7 @@ import os
 import logging
 from typing import Callable
 import json
+import re
 
 
 logger = logging.getLogger(__name__)
@@ -16,6 +17,7 @@ class BenchmarkDataPoint:
     cluster: str
     benchmark_type: str
     data_type: str
+    payload_size: str
     number: int
     value: float
 
@@ -93,8 +95,11 @@ approaches = [
 clusters = ["cluster-1", "cluster-2", "client"]
 
 benchmarks = [
+    "nginx-curl-pld",
     "nginx-curl",
+    "nginx-wrk-pld",
     "nginx-wrk",
+    "iperf-tcp-pld",
     "iperf-tcp",
     "iperf-udp",
 ]
@@ -106,8 +111,11 @@ data_types = [
 ]
 
 benchmark_type_parser_map: dict[str, Callable[[str], list[float]]] = {
+    "nginx-curl-pld": parse_nginx_curl_benchmark,
     "nginx-curl": parse_nginx_curl_benchmark,
+    "nginx-wrk-pld": parse_nginx_wrk_benchmark,
     "nginx-wrk": parse_nginx_wrk_benchmark,
+    "iperf-tcp-pld": parse_iperf_benchmark,
     "iperf-tcp": parse_iperf_benchmark,
     "iperf-udp": parse_iperf_benchmark,
     "metrics-cpu": parse_cpu_benchmark,
@@ -123,12 +131,21 @@ def match_value(possible_values: list[str], value_to_match: str) -> str:
     sys.exit(1)
 
 
+def get_payload_size(file: str) -> str:
+    match = re.search(r'-P([^-]+)', file)
+    if match:
+        return match.group(1)
+    logger.error(f"No payload size found in file name {file}")
+    sys.exit(1)
+
+
 def extract_data_from_file(file: str) -> list[BenchmarkDataPoint]:
     provider = match_value(providers, file)
     approach = match_value(approaches, file)
     cluster = match_value(clusters, file)
     benchmark_type = match_value(benchmarks, file)
     data_type = match_value(data_types, file)
+    payload_size = get_payload_size(file)
     if data_type == "client":
         data_type = "benchmark"
         parser = benchmark_type_parser_map[benchmark_type]
@@ -146,6 +163,7 @@ def extract_data_from_file(file: str) -> list[BenchmarkDataPoint]:
                     cluster=cluster,
                     benchmark_type=benchmark_type,
                     data_type=data_type,
+                    payload_size=payload_size,
                     number=number,
                     value=value
                 )

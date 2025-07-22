@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: iperf-tcp-pld-server
+  namespace: iperf-tcp-pld
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: iperf-tcp-pld-server
+  template:
+    metadata:
+      labels:
+        app: iperf-tcp-pld-server
+    spec:
+      containers:
+        - name: iperf-server
+          image: networkstatic/iperf3
+          args: ["-s"] # Starts the iperf server
+          ports:
+            - containerPort: 5201

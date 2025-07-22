@@ -1,0 +1,57 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: nginx-wrk-pld-client
+  namespace: nginx-wrk-pld
+spec:
+  template:
+    metadata:
+      labels:
+        app: nginx-wrk-pld-client
+    spec:
+      containers:
+        - name: nginx-wrk-pld-client
+          image: openeuler/wrk
+          command:
+            - "/bin/sh"
+            - "-c"
+            - >
+              sleep 10;
+              for i in $(seq 1 ${BENCHMARKS_N_DIV_10}); do
+                  dd if=/dev/urandom of=/payload.bin bs=${PAYLOAD_SIZE} count=1
+                  wrk -t12 -c400 -d10s -s /script.lua http://${SERVER_ADDRESS}:80;
+                  sleep 1;
+              done
+          volumeMounts:
+            - name: nginx-wrk-pld-config
+              mountPath: /script.lua
+              subPath: script.lua
+      volumes:
+        - name: nginx-wrk-pld-config
+          configMap:
+            name: nginx-wrk-pld-config
+
+      restartPolicy: Never
+  backoffLimit: 4
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-wrk-pld-config
+  namespace: nginx-wrk-pld
+data:
+  script.lua: |
+    wrk.method = "POST"
+    wrk.headers["Content-Type"] = "application/octet-stream"
+
+    local function read_file(path)
+       local f = io.open(path, "rb")
+       if not f then
+          error("Cannot open payload file: " .. path)
+       end
+       local content = f:read("*all")
+       f:close()
+       return content
+    end
+
+    wrk.body = read_file("/payload.bin")

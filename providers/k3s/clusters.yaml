@@ -12,7 +12,7 @@
         instance_private_ip: "{{ instance_1_private_ip }}"
         pod_cidr: 10.1.0.0/16
         service_cidr: 10.10.0.0/16
-- name: Run cluster role on instance_1
+- name: Run cluster role on instance_2
   hosts:
     - instance_2
   roles:

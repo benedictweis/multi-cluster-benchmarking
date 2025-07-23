@@ -334,3 +334,4 @@ kubeconfig*.yaml
 .env
 hosts.ini
 vars.yaml
+config.cfg

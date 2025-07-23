@@ -36,7 +36,7 @@ data:
         listen 80;
         server_name _;
 
-        client_max_body_size 200m;
+        client_max_body_size 2000m;
 
         location / {
             # Allow all methods including POST

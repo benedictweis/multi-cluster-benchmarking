@@ -91,10 +91,11 @@ locals {
 }
 
 // ami-0fbb72557598f5284 (64-bit (x86)) / ami-0393eeb161ec86a1a (64-bit (Arm))
+// c6in.8xlarge (64-bit (x86)) / c7gn.4xlarge (64-bit (Arm))
 resource "aws_instance" "instances" {
     count                       = length(local.instance_names)
-    ami                         = "ami-0fbb72557598f5284"
-    instance_type               = "c6in.8xlarge"
+    ami                         = "ami-0393eeb161ec86a1a"
+    instance_type               = "c7gn.4xlarge"
     subnet_id                   = aws_subnet.main_subnet.id
     vpc_security_group_ids      = [aws_security_group.instance_sg.id]
     associate_public_ip_address = true

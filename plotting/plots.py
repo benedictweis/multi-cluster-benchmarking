@@ -232,7 +232,6 @@ def render_plots_without_payload_size(benchmark: str, data_points: list[Benchmar
                 for cluster in clusters:
                     possible_data_points = [dp.value for dp in data_points if dp.benchmark_type == benchmark and dp.approach == approach and dp.cluster == cluster and dp.data_type == plot]
                     if possible_data_points is None or len(possible_data_points) < 1:
-                        logger.info(f"No data points found for benchmark {benchmark}, plot type {plot}, approach {approach}, cluster {cluster}")
                         continue
                     labels.append(f"{approach} ({cluster})")
                     data_points_for_plot.append(possible_data_points[1]-possible_data_points[0])
@@ -240,7 +239,6 @@ def render_plots_without_payload_size(benchmark: str, data_points: list[Benchmar
                 for cluster in clusters:
                     possible_data_points = [dp.value for dp in data_points if dp.benchmark_type == benchmark and dp.approach == approach and dp.cluster == cluster and dp.data_type == plot]
                     if possible_data_points is None or len(possible_data_points) < 1:
-                        logger.info(f"No data points found for benchmark {benchmark}, plot type {plot}, approach {approach}, cluster {cluster}")
                         continue
                     labels.append(f"{approach} ({cluster})")
                     data_points_for_plot.append(max(possible_data_points))
@@ -249,12 +247,10 @@ def render_plots_without_payload_size(benchmark: str, data_points: list[Benchmar
                 for cluster in clusters:
                     possible_data_points = [dp.value for dp in data_points if dp.benchmark_type == benchmark and dp.approach == approach and dp.cluster == cluster and dp.data_type == "metrics-cpu"]
                     if possible_data_points is None or len(possible_data_points) < 1:
-                        logger.info(f"No data points found for benchmark {benchmark}, plot type {plot}, approach {approach}, cluster {cluster}")
                         continue
                     cpu_metrics.append(possible_data_points[1]-possible_data_points[0])
                 possible_data_points = [dp.value for dp in data_points if dp.benchmark_type == benchmark and dp.approach == approach and dp.data_type == "benchmark"]
                 if possible_data_points is None or len(possible_data_points) < 1:
-                    logger.info(f"No data points found for benchmark {benchmark}, plot type {plot}, approach {approach}")
                     continue
                 cpu_metric = max(cpu_metrics)
                 benchmark_metric = np.mean(possible_data_points)
@@ -266,11 +262,9 @@ def render_plots_without_payload_size(benchmark: str, data_points: list[Benchmar
                 for cluster in clusters:
                     possible_data_points = [dp.value for dp in data_points if dp.benchmark_type == benchmark and dp.approach == approach and dp.cluster == cluster and dp.data_type == "metrics-memory"]
                     if possible_data_points is None or len(possible_data_points) < 1:
-                        logger.info(f"No data points found for benchmark {benchmark}, plot type {plot}, approach {approach}, cluster {cluster}")
                         continue
                 possible_data_points = [dp.value for dp in data_points if dp.benchmark_type == benchmark and dp.approach == approach and dp.data_type == "benchmark"]
                 if possible_data_points is None or len(possible_data_points) < 1:
-                    logger.info(f"No data points found for benchmark {benchmark}, plot type {plot}, approach {approach}")
                     continue
                 memory_metric = max(possible_data_points)
                 benchmark_metric = np.mean(possible_data_points)
@@ -280,17 +274,15 @@ def render_plots_without_payload_size(benchmark: str, data_points: list[Benchmar
             else:
                 possible_data_points = [dp.value for dp in data_points if dp.benchmark_type == benchmark and dp.approach == approach and dp.data_type == plot]
                 if possible_data_points is None or len(possible_data_points) < 1:
-                    logger.info(f"No data points found for benchmark {benchmark}, plot type {plot}, approach {approach}")
                     continue
                 labels.append(approach)
                 data_points_for_plot.append(possible_data_points)
 
         if not data_points_for_plot:
-            logger.info(f"No data points found for benchmark {benchmark}, plot type {plot}")
             continue
 
         plot_name, measurement, unit, better = get_plot_info(benchmark, plot)
-
+        logger.info(f"Plotting {benchmark} with {plot} approaches: {labels}")
         function(plot_name, measurement, unit, better, data_points_for_plot, labels, f"results/{benchmark}-{plot}-{current_time}.png")
         generate_statistics(data_points_for_plot, labels, f"results/{benchmark}-{plot}-{current_time}-stats.json")
 
@@ -319,7 +311,7 @@ def render_plots_with_payload_size(benchmark: str, data_points: list[BenchmarkDa
         return num * multiplier
 
     payload_sizes = sorted(
-        set(dp.payload_size for dp in data_points if dp.payload_size is not None),
+        set(dp.payload_size for dp in data_points if dp.payload_size if dp.benchmark_type == benchmark  is not None),
         key=parse_size
     )
     payload_sizes = [ps for ps in payload_sizes if str(ps).lower() != "none"]
@@ -335,17 +327,15 @@ def render_plots_with_payload_size(benchmark: str, data_points: list[BenchmarkDa
                 and dp.data_type == "benchmark"
                 and dp.payload_size == payload_size
             ]
-            if values:
-                x.append(str(payload_size))
-                y.append(np.mean(values))
-        if x and y:
+            x.append(payload_size)
+            y.append(np.mean(values) if values else 0)
+        if x and y and any(y):
             plot_data.append(BenchmarkLineInfo(x=x, y=y, label=approach))
 
     if not plot_data:
-        logger.info(f"No data points found for benchmark {benchmark} with payload sizes")
         return
 
-    logger.info(f"Plotting {benchmark} with payload sizes: {payload_sizes}")
+    logger.info(f"Plotting {benchmark} with approaches: {[line.label for line in plot_data]} and payload sizes: {payload_sizes}")
     plot_name, measurement, unit, better = get_plot_info(benchmark.removesuffix("-pld"), "comparison")
     generate_line_plot(plot_name, measurement, unit, better, plot_data, f"results/{benchmark}-comparison-{current_time}.png")
 

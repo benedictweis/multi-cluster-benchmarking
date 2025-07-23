@@ -180,7 +180,7 @@ def main():
     if not os.path.isfile(file_name):
         logger.error(f"File {file_name} does not exist.")
         sys.exit(1)
-
+        
     data_points = extract_data_from_file(file_name)
 
     for dp in data_points:

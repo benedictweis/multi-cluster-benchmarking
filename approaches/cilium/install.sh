@@ -40,6 +40,10 @@ CILIUM_HELM_VALUES_FILE_2=$(mktemp)
 envsubst <"cilium-$CLUSTER_2_NAME.yaml" >"${CILIUM_HELM_VALUES_FILE_2}"
 helm upgrade --install --reset-values -n kube-system cilium cilium/cilium -f "${CILIUM_HELM_VALUES_FILE_2}" --kube-context "${CLUSTER_2_CONTEXT}"
 
+approachinfo "Restarting all Cilium pods"
+kubectl --context="${CLUSTER_1_CONTEXT}" -n kube-system delete pod -l app.kubernetes.io/part-of=cilium
+kubectl --context="${CLUSTER_2_CONTEXT}" -n kube-system delete pod -l app.kubernetes.io/part-of=cilium
+
 approachinfo "Waiting for cilium to be ready"
 cilium status --context "${CLUSTER_1_CONTEXT}" --wait
 cilium status --context "${CLUSTER_2_CONTEXT}" --wait

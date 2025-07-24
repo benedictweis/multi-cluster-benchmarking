@@ -30,6 +30,11 @@ CILIUM_HELM_VALUES_FILE_1=$(mktemp)
 envsubst <"cilium-$CLUSTER_1_NAME.yaml" >"${CILIUM_HELM_VALUES_FILE_1}"
 helm upgrade --install --reset-values -n kube-system cilium cilium/cilium -f "${CILIUM_HELM_VALUES_FILE_1}" --kube-context "${CLUSTER_1_CONTEXT}"
 
+approachinfo "Waiting for cilium-ca secret to be present on cluster-1"
+until kubectl --context="${CLUSTER_1_CONTEXT}" get secret -n kube-system cilium-ca >/dev/null 2>&1; do
+    sleep 1
+done
+
 approachinfo "Setting up shared CA"
 kubectl --context="${CLUSTER_2_CONTEXT}" delete secret -n kube-system cilium-ca --ignore-not-found
 kubectl --context="${CLUSTER_1_CONTEXT}" get secret -n kube-system cilium-ca -o yaml |

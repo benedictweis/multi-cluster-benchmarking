@@ -9,12 +9,6 @@ source ../../helper.sh
 
 CLUSTER_1_CONTEXT=$(cat "../../$CONTEXT_1_FILE")
 
-approachinfo "Offloading $BENCHMARK namespace"
-liqoctl offload namespace $BENCHMARK \
-    --context "$CLUSTER_1_CONTEXT" \
-    --namespace-mapping-strategy EnforceSameName \
-    --pod-offloading-strategy Local
-
 SERVICE_MANIFEST=$(
     cat <<EOF
 apiVersion: v1
@@ -33,5 +27,11 @@ EOF
 
 approachinfo "Applying service manifest"
 kubectl --context="$CLUSTER_1_CONTEXT" apply -f - <<<"$SERVICE_MANIFEST"
+
+approachinfo "Offloading $BENCHMARK namespace"
+liqoctl offload namespace $BENCHMARK \
+    --context "$CLUSTER_1_CONTEXT" \
+    --namespace-mapping-strategy EnforceSameName \
+    --pod-offloading-strategy Local
 
 export SERVER_ADDRESS="$BENCHMARK-server"

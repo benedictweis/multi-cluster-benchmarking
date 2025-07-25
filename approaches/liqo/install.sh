@@ -20,6 +20,7 @@ liqoctl info --context "$CLUSTER_2_CONTEXT"
 
 approachinfo "Peering clusters"
 liqoctl peer --context="$CLUSTER_2_CONTEXT" --remote-context="$CLUSTER_1_CONTEXT"
+sleep 5
 
 approachinfo "Checking peering status"
 liqoctl info peer --context "$CLUSTER_1_CONTEXT"

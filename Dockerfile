@@ -48,6 +48,9 @@ RUN curl --fail -LS "https://github.com/liqotech/liqo/releases/download/v1.0.0/l
 RUN curl --fail -LS "https://github.com/skupperproject/skupper/releases/download/1.9.2/skupper-cli-1.9.2-linux-${CLI_ARCH}.tgz" | tar -xz &&\ 
     install -o root -g root -m 0755 skupper /usr/local/bin/skupper
 
+RUN curl --fail -LS "https://github.com/derailed/k9s/releases/download/v0.50.9/k9s_Linux_${CLI_ARCH}.tar.gz" | tar -xz &&\ 
+    install -o root -g root -m 0755 k9s /usr/local/bin/k9s
+
 RUN curl -Ls https://get.submariner.io | bash
 ENV PATH="$PATH:~/.local/bin"
 
@@ -70,6 +73,9 @@ RUN apt-get install -y \
     containerd.io \
     docker-buildx-plugin \
     docker-compose-plugin
+
+RUN echo 'alias k=kubectl' >> /root/.bashrc && \
+    echo 'alias ks="kubectl -n kube-system"' >> /root/.bashrc
 
 WORKDIR /multi-cluster-benchmarking
 

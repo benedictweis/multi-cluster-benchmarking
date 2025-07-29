@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: iperf-tcp-par-server
-  namespace: iperf-tcp
+  namespace: iperf-tcp-par
 spec:
   replicas: 1
   selector:

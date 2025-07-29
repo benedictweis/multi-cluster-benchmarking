@@ -2,7 +2,7 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: iperf-tcp-par-client
-  namespace: iperf-tcp
+  namespace: iperf-tcp-par
 spec:
   template:
     metadata:

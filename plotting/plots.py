@@ -85,7 +85,11 @@ def generate_line_plot(plot_name: str, measurement: str, unit: str, better: str,
         plt.plot(line_info.x, line_info.y, marker=markers[line_info.label], label=line_info.label)
 
     plt.title(plot_name, fontsize=10)
-    plt.xlabel('Payload Size', fontsize=8)
+    if "payload" in plot_name.lower():
+        xlabel = "Payload Size"
+    elif "parallel" in plot_name.lower():
+        xlabel = "Amount of Parallel Streams"
+    plt.xlabel(xlabel, fontsize=8)
     plt.ylabel(f'{measurement} [{unit}] ({better} is better)', fontsize=8)
     plt.legend(fontsize=8)
 
@@ -194,7 +198,7 @@ info = {
 
 
 def get_plot_info(benchmark: str, plot_type: str, ) -> tuple[str, str, str, str]:
-    benchmark_info = info[benchmark]
+    benchmark_info = info[benchmark.removesuffix("-pld").removesuffix("-par")]
     plot_type_info = info.get(plot_type, {})
 
     plot_name, measurement, unit, better = "", "", "", ""
@@ -215,7 +219,10 @@ def get_plot_info(benchmark: str, plot_type: str, ) -> tuple[str, str, str, str]
         unit = f"{benchmark_info["unit"]} / {plot_type_info["unit"]}"
         better = "higher"
     elif plot_type == "comparison":
-        plot_name = f"Comparison of {benchmark_info["plot_name"]} across payload sizes"
+        if benchmark.endswith("-pld"):
+            plot_name = f"Comparison of {benchmark_info["plot_name"]} across payload sizes"
+        elif benchmark.endswith("-par"):
+            plot_name = f"Comparison of {benchmark_info["plot_name"]} across amount of parallel streams"
         measurement = benchmark_info["measurement"]
         unit = benchmark_info["unit"]
         better = benchmark_info["better"]
@@ -336,7 +343,7 @@ def render_plots_with_payload_size(benchmark: str, data_points: list[BenchmarkDa
         return
 
     logger.info(f"Plotting {benchmark} with approaches: {[line.label for line in plot_data]} and payload sizes: {payload_sizes}")
-    plot_name, measurement, unit, better = get_plot_info(benchmark.removesuffix("-pld"), "comparison")
+    plot_name, measurement, unit, better = get_plot_info(benchmark, "comparison")
     generate_line_plot(plot_name, measurement, unit, better, plot_data, f"results/{benchmark}-comparison-{current_time}.png")
 
 
@@ -369,7 +376,7 @@ def main():
     current_time = datetime.now().strftime('%Y%m%d-%H%M%S')
 
     for benchmark in benchmarks:
-        if benchmark.endswith("-pld"):
+        if benchmark.endswith("-pld") or benchmark.endswith("-par"):
             render_plots_with_payload_size(benchmark, data_points, current_time)
         else:
             render_plots_without_payload_size(benchmark, data_points, current_time)

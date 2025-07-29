@@ -26,7 +26,7 @@
 
 - name: Install K3s with custom options
   shell: |
-    curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC='--disable cni --disable traefik --disable servicelb --disable metrics-server --disable-network-policy --flannel-backend=none --cluster-cidr={{ pod_cidr }} --service-cidr={{ service_cidr }} --kubelet-arg=cpu-manager-policy=static --kubelet-arg=cpu-manager-reconcile-period=5s --kubelet-arg=system-reserved=cpu=1000m,memory=2Gi --kubelet-arg=kube-reserved=cpu=2000m,memory=2Gi --kubelet-arg=reserved-cpus=0,1,2' sh -
+    curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC='--disable cni --disable traefik --disable servicelb --disable metrics-server --disable-network-policy --flannel-backend=none --cluster-cidr={{ pod_cidr }} --service-cidr={{ service_cidr }} --kubelet-arg=cpu-manager-policy=static --kubelet-arg=cpu-manager-reconcile-period=5s --kubelet-arg=system-reserved=cpu=1000m,memory=2Gi --kubelet-arg=kube-reserved=cpu=4000m,memory=8Gi --kubelet-arg=reserved-cpus=0,1,2,3,4,5' sh -
   args:
     executable: /bin/bash
 

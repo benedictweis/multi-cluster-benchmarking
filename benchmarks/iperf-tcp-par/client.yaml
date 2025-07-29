@@ -1,0 +1,22 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: iperf-tcp-par-client
+  namespace: iperf-tcp
+spec:
+  template:
+    metadata:
+      labels:
+        app: iperf-tcp-par-client
+    spec:
+      containers:
+        - name: iperf-tcp-par-client
+          image: networkstatic/iperf3
+          command:
+            - "/bin/sh"
+            - "-c"
+            - >
+              sleep 20;
+              iperf3 -c ${SERVER_ADDRESS} -J -t ${BENCHMARKS_N} -P ${PAYLOAD_SIZE}
+      restartPolicy: Never
+  backoffLimit: 4

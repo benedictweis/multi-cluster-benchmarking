@@ -173,6 +173,9 @@ function benchmarks() {
                 if [[ "$benchmark" == *-pld ]]; then
                     INTERNAL_PAYLOAD_SIZES="$PAYLOAD_SIZES"
                     info "[$PROVIDER $approach $benchmark] Using payload sizes: $INTERNAL_PAYLOAD_SIZES"
+                elif [[ "$benchmark" == *-par ]]; then
+                    INTERNAL_PAYLOAD_SIZES="$IPERF_PARALLEL_STREAMS"
+                    info "[$PROVIDER $approach $benchmark] Using parallel streams as payload sizes: $INTERNAL_PAYLOAD_SIZES"
                 else
                     INTERNAL_PAYLOAD_SIZES="none"
                     info "[$PROVIDER $approach $benchmark] Using no payload size: $INTERNAL_PAYLOAD_SIZES"

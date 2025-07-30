@@ -32,7 +32,8 @@ markers = {
     "cluster-link": "0",
 }
 
-def generate_box_plot(plot_name: str, measurement: str, unit: str, better: str, plot_data: list, labels: list, output_file: str):
+
+def generate_box_plot(plot_info: any, plot_data: list, labels: list, output_file: str):
     plot_data = plot_data[::-1]
     labels = labels[::-1]
     plt.figure(figsize=(10, 5))
@@ -41,26 +42,34 @@ def generate_box_plot(plot_name: str, measurement: str, unit: str, better: str, 
     for patch, color in zip(box['boxes'], colors):
         patch.set_facecolor(color)
 
-    plt.title(plot_name, fontsize=10)
-    plt.xlabel(f'{measurement} [{unit}] ({better} is better)', fontsize=8)
+    if hasattr(plot_info, 'lower_bound') and plot_info['lower_bound'] is not None:
+        plt.xlim(left=plot_info['lower_bound'])
+    if hasattr(plot_info, 'upper_bound') and plot_info['upper_bound'] is not None:
+        plt.xlim(right=plot_info['upper_bound'])
+
+    plt.title(plot_info['plot_name'], fontsize=10)
+    plt.xlabel(f'{plot_info['measurement']} [{plot_info['unit']}] ({plot_info['better']} is better)', fontsize=8)
     plt.yticks(range(1, len(labels) + 1), labels, fontsize=8)
 
     plt.gca().xaxis.grid(True, which='major', linestyle='-', linewidth=0.7, color='gray', alpha=0.5)
     plt.gca().set_axisbelow(True)
+
+    if plot_info['lower_bound'] is not None:
+        plt.xlim(plot_info['lower_bound'], plot_info['upper_bound'])
 
     plt.tight_layout(pad=1.0)
     plt.savefig(output_file, dpi=300)
     plt.close()
 
 
-def generate_bar_chart(plot_name: str, measurement: str, unit: str, better: str, plot_data: list, labels: list, output_file: str):
+def generate_bar_chart(plot_info: any, plot_data: list, labels: list, output_file: str):
     plot_data = plot_data[::-1]
     labels = labels[::-1]
     plt.figure(figsize=(10, 5))
     bars = plt.barh(labels, plot_data, color=plt.cm.viridis(np.linspace(0, 1, len(plot_data))), height=0.8)
 
-    plt.title(plot_name, fontsize=10)
-    plt.xlabel(f'{measurement} [{unit}] ({better} is better)', fontsize=8)
+    plt.title(plot_info['plot_name'], fontsize=10)
+    plt.xlabel(f'{plot_info['measurement']} [{plot_info['unit']}] ({plot_info['better']} is better)', fontsize=8)
     plt.yticks(fontsize=8)
 
     plt.gca().xaxis.grid(True, which='major', linestyle='-', linewidth=0.7, color='gray', alpha=0.5)
@@ -79,23 +88,26 @@ def generate_bar_chart(plot_name: str, measurement: str, unit: str, better: str,
     plt.close()
 
 
-def generate_line_plot(plot_name: str, measurement: str, unit: str, better: str, plot_data: list[BenchmarkLineInfo], output_file: str):
+def generate_line_plot(plot_info: any, plot_data: list[BenchmarkLineInfo], output_file: str):
     plt.figure(figsize=(10, 5))
     for line_info in plot_data:
         plt.plot(line_info.x, line_info.y, marker=markers[line_info.label], label=line_info.label)
 
-    plt.title(plot_name, fontsize=10)
-    if "payload" in plot_name.lower():
+    plt.title(plot_info['plot_name'], fontsize=10)
+    if "payload" in plot_info['plot_name'].lower():
         xlabel = "Payload Size"
-    elif "parallel" in plot_name.lower():
+    elif "parallel" in plot_info['plot_name'].lower():
         xlabel = "Amount of Parallel Streams"
     plt.xlabel(xlabel, fontsize=8)
-    plt.ylabel(f'{measurement} [{unit}] ({better} is better)', fontsize=8)
+    plt.ylabel(f'{plot_info['measurement']} [{plot_info['unit']}] ({plot_info['better']} is better)', fontsize=8)
     plt.legend(fontsize=8)
 
     plt.gca().xaxis.grid(True, which='major', linestyle='-', linewidth=0.7, color='gray', alpha=0.5)
     plt.gca().yaxis.grid(True, which='major', linestyle='-', linewidth=0.7, color='gray', alpha=0.5)
     plt.gca().set_axisbelow(True)
+
+    if plot_info['lower_bound'] is not None:
+        plt.ylim(plot_info['lower_bound'], plot_info['upper_bound'])
 
     plt.tight_layout(pad=1.0)
     plt.savefig(output_file, dpi=300)
@@ -153,24 +165,32 @@ info = {
         "measurement": "Round Trip Time (RTT)",
         "unit": "ms",
         "better": "lower",
+        "lower_bound": 0,
+        "upper_bound": 3,
     },
     "nginx-wrk": {
         "plot_name": "Nginx Wrk Benchmark",
         "measurement": "Latency",
         "unit": "ms",
         "better": "lower",
+        "lower_bound": 0,
+        "upper_bound": 50,
     },
     "iperf-tcp": {
         "plot_name": "Iperf TCP Network Throughput Benchmark",
         "measurement": "TCP Throughput",
         "unit": "Gbit/s",
         "better": "higher",
+        "lower_bound": 0,
+        "upper_bound": 60,
     },
     "iperf-udp": {
         "plot_name": "Iperf UDP Network Throughput Benchmark",
         "measurement": "UDP Throughput",
         "unit": "Gbit/s",
         "better": "higher",
+        "lower_bound": 0,
+        "upper_bound": 60,
     },
     "metrics-cpu": {
         "plot_name": "CPU Seconds used",
@@ -197,37 +217,32 @@ info = {
 }
 
 
-def get_plot_info(benchmark: str, plot_type: str, ) -> tuple[str, str, str, str]:
+def get_plot_info(benchmark: str, plot_type: str, ) -> any:
     benchmark_info = info[benchmark.removesuffix("-pld").removesuffix("-par")]
     plot_type_info = info.get(plot_type, {})
 
-    plot_name, measurement, unit, better = "", "", "", ""
-
     if plot_type == "benchmark":
-        plot_name = benchmark_info["plot_name"]
-        measurement = benchmark_info["measurement"]
-        unit = benchmark_info["unit"]
-        better = benchmark_info["better"]
+        return benchmark_info
     elif "metrics" in plot_type:
-        plot_name = f"{plot_type_info["plot_name"]} for {benchmark_info["plot_name"]}"
-        measurement = plot_type_info["measurement"]
-        unit = plot_type_info["unit"]
-        better = plot_type_info["better"]
+        plot_type_info['plot_name'] = f"{benchmark_info['plot_name']} ({plot_type_info['plot_name']})"
+        return plot_type_info
     elif "efficiency" in plot_type:
-        plot_name = f"{plot_type_info["plot_name"]} for {benchmark_info["plot_name"]}"
-        measurement = f"{benchmark_info["measurement"]} per {plot_type_info["measurement"]}"
-        unit = f"{benchmark_info["unit"]} / {plot_type_info["unit"]}"
-        better = "higher"
+        return {
+            "plot_name": f"{plot_type_info['plot_name']} for {benchmark_info['plot_name']}",
+            "measurement": f"{benchmark_info['measurement']} per {plot_type_info['measurement']}",
+            "unit": f"{benchmark_info['unit']} / {plot_type_info['unit']}",
+            "better": "higher"
+        }
     elif plot_type == "comparison":
         if benchmark.endswith("-pld"):
-            plot_name = f"Comparison of {benchmark_info["plot_name"]} across payload sizes"
+            plot_name = f"Comparison of {benchmark_info['plot_name']} across payload sizes"
         elif benchmark.endswith("-par"):
-            plot_name = f"Comparison of {benchmark_info["plot_name"]} across amount of parallel streams"
-        measurement = benchmark_info["measurement"]
-        unit = benchmark_info["unit"]
-        better = benchmark_info["better"]
-
-    return plot_name, measurement, unit, better
+            plot_name = f"Comparison of {benchmark_info['plot_name']} across amount of parallel streams"
+        benchmark_info['plot_name'] = plot_name
+        return benchmark_info
+    else:
+        logger.error(f"Unknown plot type: {plot_type} for benchmark: {benchmark}")
+        return {}
 
 
 def render_plots_without_payload_size(benchmark: str, data_points: list[BenchmarkDataPoint], current_time: str):
@@ -288,9 +303,9 @@ def render_plots_without_payload_size(benchmark: str, data_points: list[Benchmar
         if not data_points_for_plot:
             continue
 
-        plot_name, measurement, unit, better = get_plot_info(benchmark, plot)
+        plot_info = get_plot_info(benchmark, plot)
         logger.info(f"Plotting {benchmark} with {plot} approaches: {labels}")
-        function(plot_name, measurement, unit, better, data_points_for_plot, labels, f"results/{benchmark}-{plot}-{current_time}.png")
+        function(plot_info, data_points_for_plot, labels, f"results/{benchmark}-{plot}-{current_time}.png")
         generate_statistics(data_points_for_plot, labels, f"results/{benchmark}-{plot}-{current_time}-stats.json")
 
 
@@ -343,8 +358,8 @@ def render_plots_with_payload_size(benchmark: str, data_points: list[BenchmarkDa
         return
 
     logger.info(f"Plotting {benchmark} with approaches: {[line.label for line in plot_data]} and payload sizes: {payload_sizes}")
-    plot_name, measurement, unit, better = get_plot_info(benchmark, "comparison")
-    generate_line_plot(plot_name, measurement, unit, better, plot_data, f"results/{benchmark}-comparison-{current_time}.png")
+    plot_info = get_plot_info(benchmark, "comparison")
+    generate_line_plot(plot_info, plot_data, f"results/{benchmark}-comparison-{current_time}.png")
 
 
 def get_data_points(input: str) -> list[BenchmarkDataPoint]:

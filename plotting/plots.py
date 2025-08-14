@@ -10,6 +10,10 @@ from statsmodels.formula.api import ols
 
 from extract_data import BenchmarkDataPoint, benchmarks, approaches, clusters
 import re
+import os
+
+PLOT_FONTSIZE = 12
+
 @dataclass
 class BenchmarkLineInfo:
     x: list[str]
@@ -47,9 +51,9 @@ def generate_box_plot(plot_info: any, plot_data: list, labels: list, output_file
     if hasattr(plot_info, 'upper_bound') and plot_info['upper_bound'] is not None:
         plt.xlim(right=plot_info['upper_bound'])
 
-    plt.title(plot_info['plot_name'], fontsize=10)
-    plt.xlabel(f'{plot_info['measurement']} [{plot_info['unit']}] ({plot_info['better']} is better)', fontsize=8)
-    plt.yticks(range(1, len(labels) + 1), labels, fontsize=8)
+    #plt.title(plot_info['plot_name'], fontsize=10)
+    plt.xlabel(f'{plot_info['measurement']} [{plot_info['unit']}] ({plot_info['better']} is better)', fontsize=PLOT_FONTSIZE)
+    plt.yticks(range(1, len(labels) + 1), labels, fontsize=PLOT_FONTSIZE)
 
     plt.gca().xaxis.grid(True, which='major', linestyle='-', linewidth=0.7, color='gray', alpha=0.5)
     plt.gca().set_axisbelow(True)
@@ -68,9 +72,9 @@ def generate_bar_chart(plot_info: any, plot_data: list, labels: list, output_fil
     plt.figure(figsize=(10, 5))
     bars = plt.barh(labels, plot_data, color=plt.cm.viridis(np.linspace(0, 1, len(plot_data))), height=0.8)
 
-    plt.title(plot_info['plot_name'], fontsize=10)
-    plt.xlabel(f'{plot_info['measurement']} [{plot_info['unit']}] ({plot_info['better']} is better)', fontsize=8)
-    plt.yticks(fontsize=8)
+    #plt.title(plot_info['plot_name'], fontsize=10)
+    plt.xlabel(f'{plot_info['measurement']} [{plot_info['unit']}] ({plot_info['better']} is better)', fontsize=PLOT_FONTSIZE)
+    plt.yticks(fontsize=PLOT_FONTSIZE)
 
     plt.gca().xaxis.grid(True, which='major', linestyle='-', linewidth=0.7, color='gray', alpha=0.5)
     plt.gca().set_axisbelow(True)
@@ -93,21 +97,24 @@ def generate_line_plot(plot_info: any, plot_data: list[BenchmarkLineInfo], outpu
     for line_info in plot_data:
         plt.plot(line_info.x, line_info.y, marker=markers[line_info.label], label=line_info.label)
 
-    plt.title(plot_info['plot_name'], fontsize=10)
+    #plt.title(plot_info['plot_name'], fontsize=10)
     if "payload" in plot_info['plot_name'].lower():
         xlabel = "Payload Size"
     elif "parallel" in plot_info['plot_name'].lower():
         xlabel = "Amount of Parallel Streams"
-    plt.xlabel(xlabel, fontsize=8)
-    plt.ylabel(f'{plot_info['measurement']} [{plot_info['unit']}] ({plot_info['better']} is better)', fontsize=8)
-    plt.legend(fontsize=8)
+    plt.xlabel(xlabel, fontsize=PLOT_FONTSIZE)
+    plt.ylabel(f'{plot_info['measurement']} [{plot_info['unit']}] ({plot_info['better']} is better)', fontsize=PLOT_FONTSIZE)
+    plt.legend(fontsize=PLOT_FONTSIZE)
 
     plt.gca().xaxis.grid(True, which='major', linestyle='-', linewidth=0.7, color='gray', alpha=0.5)
     plt.gca().yaxis.grid(True, which='major', linestyle='-', linewidth=0.7, color='gray', alpha=0.5)
     plt.gca().set_axisbelow(True)
 
-    if plot_info['lower_bound'] is not None:
+    max_y = max(max(line.y) for line in plot_data)
+    if plot_info['lower_bound'] is not None and max_y < plot_info['upper_bound']:
         plt.ylim(plot_info['lower_bound'], plot_info['upper_bound'])
+    #else:
+    #    plt.yscale('log')
 
     plt.tight_layout(pad=1.0)
     plt.savefig(output_file, dpi=300)
@@ -305,8 +312,8 @@ def render_plots_without_payload_size(benchmark: str, data_points: list[Benchmar
 
         plot_info = get_plot_info(benchmark, plot)
         logger.info(f"Plotting {benchmark} with {plot} approaches: {labels}")
-        function(plot_info, data_points_for_plot, labels, f"results/{benchmark}-{plot}-{current_time}.png")
-        generate_statistics(data_points_for_plot, labels, f"results/{benchmark}-{plot}-{current_time}-stats.json")
+        function(plot_info, data_points_for_plot, labels, f"results/{current_time}/{benchmark}-{plot}.png")
+        generate_statistics(data_points_for_plot, labels, f"results/{current_time}/{benchmark}-{plot}-stats.json")
 
 
 def render_plots_with_payload_size(benchmark: str, data_points: list[BenchmarkDataPoint], current_time: str):
@@ -359,7 +366,7 @@ def render_plots_with_payload_size(benchmark: str, data_points: list[BenchmarkDa
 
     logger.info(f"Plotting {benchmark} with approaches: {[line.label for line in plot_data]} and payload sizes: {payload_sizes}")
     plot_info = get_plot_info(benchmark, "comparison")
-    generate_line_plot(plot_info, plot_data, f"results/{benchmark}-comparison-{current_time}.png")
+    generate_line_plot(plot_info, plot_data, f"results/{current_time}/{benchmark}-comparison.png")
 
 
 def get_data_points(input: str) -> list[BenchmarkDataPoint]:
@@ -389,6 +396,7 @@ def main():
     logger.info(f"Extracted {len(data_points)} data points from input")
 
     current_time = datetime.now().strftime('%Y%m%d-%H%M%S')
+    os.makedirs(f"results/{current_time}", exist_ok=True)
 
     for benchmark in benchmarks:
         if benchmark.endswith("-pld") or benchmark.endswith("-par"):

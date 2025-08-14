@@ -138,7 +138,7 @@ def get_payload_size(file: str) -> str:
     if match:
         return match.group(1)
     logger.error(f"No payload size found in file name {file}")
-    sys.exit(1)
+    return "1"
 
 
 def extract_data_from_file(file: str) -> list[BenchmarkDataPoint]:

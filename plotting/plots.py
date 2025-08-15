@@ -104,7 +104,7 @@ def generate_line_plot(plot_info: any, plot_data: list[BenchmarkLineInfo], outpu
         xlabel = "Amount of Parallel Streams"
     plt.xlabel(xlabel, fontsize=PLOT_FONTSIZE)
     plt.ylabel(f'{plot_info['measurement']} [{plot_info['unit']}] ({plot_info['better']} is better)', fontsize=PLOT_FONTSIZE)
-    plt.legend(fontsize=PLOT_FONTSIZE)
+    plt.legend(fontsize=PLOT_FONTSIZE, loc='upper left')
 
     plt.gca().xaxis.grid(True, which='major', linestyle='-', linewidth=0.7, color='gray', alpha=0.5)
     plt.gca().yaxis.grid(True, which='major', linestyle='-', linewidth=0.7, color='gray', alpha=0.5)
@@ -312,7 +312,7 @@ def render_plots_without_payload_size(benchmark: str, data_points: list[Benchmar
 
         plot_info = get_plot_info(benchmark, plot)
         logger.info(f"Plotting {benchmark} with {plot} approaches: {labels}")
-        function(plot_info, data_points_for_plot, labels, f"results/{current_time}/{benchmark}-{plot}.png")
+        function(plot_info, data_points_for_plot, labels, f"results/{current_time}/{benchmark}-{plot}.svg")
         generate_statistics(data_points_for_plot, labels, f"results/{current_time}/{benchmark}-{plot}-stats.json")
 
 
@@ -366,7 +366,7 @@ def render_plots_with_payload_size(benchmark: str, data_points: list[BenchmarkDa
 
     logger.info(f"Plotting {benchmark} with approaches: {[line.label for line in plot_data]} and payload sizes: {payload_sizes}")
     plot_info = get_plot_info(benchmark, "comparison")
-    generate_line_plot(plot_info, plot_data, f"results/{current_time}/{benchmark}-comparison.png")
+    generate_line_plot(plot_info, plot_data, f"results/{current_time}/{benchmark}-comparison.svg")
 
 
 def get_data_points(input: str) -> list[BenchmarkDataPoint]:

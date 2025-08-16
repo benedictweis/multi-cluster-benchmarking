@@ -1,4 +1,4 @@
-version: 1.17.5
+version: 1.18.1
 
 cluster:
   name: cluster-1

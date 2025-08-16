@@ -17,7 +17,7 @@ for CLUSTER_NAME in "${CLUSTER_1_NAME}" "${CLUSTER_2_NAME}"; do
     info "[$PROVIDER $CLUSTER_NAME] Installing Cilium"
     helm repo add cilium "${HELM_REPO_URL}"
     helm repo update
-    helm upgrade --install --reset-values --version 1.17.5 -n kube-system cilium cilium/cilium \
+    helm upgrade --install --reset-values --version 1.18.1 -n kube-system cilium cilium/cilium \
         --set ipam.mode=kubernetes \
         --set operator.replicas=1 
 

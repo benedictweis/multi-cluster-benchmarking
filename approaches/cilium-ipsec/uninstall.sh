@@ -20,6 +20,10 @@ helm upgrade --install --reset-values --version 1.18.1 -n kube-system cilium cil
         --set operator.replicas=1 \
         --kube-context "${CLUSTER_2_CONTEXT}"
 
+approachinfo "Deleting IPSec keys"
+kubectl delete secret -n kube-system cilium-ipsec-keys --ignore-not-found --context "${CLUSTER_1_CONTEXT}"
+kubectl delete secret -n kube-system cilium-ipsec-keys --ignore-not-found --context "${CLUSTER_2_CONTEXT}"
+
 approachinfo "Restarting all Cilium pods"
 kubectl --context="${CLUSTER_1_CONTEXT}" -n kube-system delete pod -l app.kubernetes.io/part-of=cilium
 kubectl --context="${CLUSTER_2_CONTEXT}" -n kube-system delete pod -l app.kubernetes.io/part-of=cilium 

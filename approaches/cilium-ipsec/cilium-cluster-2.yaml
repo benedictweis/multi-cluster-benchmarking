@@ -25,3 +25,7 @@ clustermesh:
       loadBalancerIP: ${CLUSTER_2_CILIUM_APISERVER_IP}
     kvstoremesh:
       enabled: false
+
+encryption:
+  enabled: true
+  type: ipsec

@@ -1,8 +1,8 @@
 version: 1.18.1
 
 cluster:
-  name: cluster-2
-  id: 2
+  name: cluster-1
+  id: 1
 
 ipam:
   mode: kubernetes
@@ -15,13 +15,17 @@ clustermesh:
   config:
     enabled: true
     clusters:
-      - name: cluster-1
+      - name: cluster-2
         port: 2379
         ips:
-          - ${CLUSTER_1_CILIUM_APISERVER_IP}
+          - ${CLUSTER_2_CILIUM_APISERVER_IP}
   apiserver:
     service:
       type: LoadBalancer
-      loadBalancerIP: ${CLUSTER_2_CILIUM_APISERVER_IP}
+      loadBalancerIP: ${CLUSTER_1_CILIUM_APISERVER_IP}
     kvstoremesh:
       enabled: false
+
+encryption:
+  enabled: true
+  type: ipsec

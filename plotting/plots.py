@@ -25,6 +25,9 @@ markers = {
     "same-cluster": "o",
     "load-balancer": "s",
     "cilium": "D",
+    "cilium-none": "D",
+    "cilium-ipsec": "d",
+    "cilium-wireguard": "+",
     "calico": "^",
     "istio": "v",
     "linkerd": "<",
@@ -36,15 +39,33 @@ markers = {
     "cluster-link": "0",
 }
 
+colors = {
+    "same-cluster": "#332288",
+    "load-balancer": "#117733",
+    "cilium": "#44AA99",
+    "cilium-none": "#44AA99",
+    "cilium-ipsec": "#88CCEE",
+    "cilium-wireguard": "#DDCC77",
+    "calico": "#000000",
+    "istio": "#CC6677",
+    "linkerd": "#AA4499",
+    "nss": "#000000",
+    "kuma": "#000000",
+    "skupper": "#882255",
+    "submariner": "#000000",
+    "liqo": "#000000",
+    "cluster-link": "#000000",
+}
+
 
 def generate_box_plot(plot_info: any, plot_data: list, labels: list, output_file: str):
     plot_data = plot_data[::-1]
     labels = labels[::-1]
     plt.figure(figsize=(10, 5))
     box = plt.boxplot(plot_data, vert=False, patch_artist=True, widths=0.8, showfliers=False)
-    colors = plt.cm.viridis(np.linspace(0, 1, len(plot_data)))
-    for patch, color in zip(box['boxes'], colors):
-        patch.set_facecolor(color)
+    for i, label in enumerate(labels):
+        color = next((color_val for key, color_val in colors.items() if key in label), '#000000')
+        box['boxes'][i].set_facecolor(color)
 
     if hasattr(plot_info, 'lower_bound') and plot_info['lower_bound'] is not None:
         plt.xlim(left=plot_info['lower_bound'])
@@ -70,7 +91,10 @@ def generate_bar_chart(plot_info: any, plot_data: list, labels: list, output_fil
     plot_data = plot_data[::-1]
     labels = labels[::-1]
     plt.figure(figsize=(10, 5))
-    bars = plt.barh(labels, plot_data, color=plt.cm.viridis(np.linspace(0, 1, len(plot_data))), height=0.8)
+    bars = plt.barh(labels, plot_data, height=0.8)
+    for i, label in enumerate(labels):
+        color = next((color_val for key, color_val in colors.items() if key in label), '#000000')
+        bars[i].set_facecolor(color)
 
     #plt.title(plot_info['plot_name'], fontsize=10)
     plt.xlabel(f'{plot_info['measurement']} [{plot_info['unit']}] ({plot_info['better']} is better)', fontsize=PLOT_FONTSIZE)
@@ -95,7 +119,7 @@ def generate_bar_chart(plot_info: any, plot_data: list, labels: list, output_fil
 def generate_line_plot(plot_info: any, plot_data: list[BenchmarkLineInfo], output_file: str):
     plt.figure(figsize=(10, 5))
     for line_info in plot_data:
-        plt.plot(line_info.x, line_info.y, marker=markers[line_info.label], label=line_info.label)
+        plt.plot(line_info.x, line_info.y, marker=markers[line_info.label], color=colors[line_info.label], label=line_info.label)
 
     #plt.title(plot_info['plot_name'], fontsize=10)
     if "payload" in plot_info['plot_name'].lower():

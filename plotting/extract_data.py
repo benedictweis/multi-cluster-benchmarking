@@ -81,6 +81,9 @@ approaches = [
     "same-cluster",
     "load-balancer",
     "cilium",
+    "cilium-none",
+    "cilium-ipsec",
+    "cilium-wireguard"
     "calico",
     "istio",
     "linkerd",

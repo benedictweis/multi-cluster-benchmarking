@@ -25,13 +25,6 @@ elif [[ "${PROVIDER}" == "k3s" ]]; then
     export CLUSTER_2_CILIUM_APISERVER_IP=$(kubectl --context "${CLUSTER_2_CONTEXT}" get node -l node-role.kubernetes.io/control-plane -o jsonpath='{.items[0].status.addresses[?(@.type=="InternalIP")].address}')
 fi
 
-approachinfo "Patching node-encryption-opt-out-labels ConfigMap"
-for context in "${CLUSTER_1_CONTEXT}" "${CLUSTER_2_CONTEXT}"; do
-    kubectl --context "${context}" -n kube-system patch configmap cilium-config \
-        --type merge \
-        -p '{"data":{"node-encryption-opt-out-labels":""}}' || true
-done
-
 approachinfo "Installing Cilium on cluster-1"
 CILIUM_HELM_VALUES_FILE_1=$(mktemp)
 envsubst <"cilium-$CLUSTER_1_NAME.yaml" >"${CILIUM_HELM_VALUES_FILE_1}"

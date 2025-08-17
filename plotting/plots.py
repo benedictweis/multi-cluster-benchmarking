@@ -24,7 +24,6 @@ class BenchmarkLineInfo:
 markers = {
     "same-cluster": "o",
     "load-balancer": "s",
-    "cilium": "D",
     "cilium-none": "D",
     "cilium-ipsec": "d",
     "cilium-wireguard": "+",
@@ -42,7 +41,6 @@ markers = {
 colors = {
     "same-cluster": "#332288",
     "load-balancer": "#117733",
-    "cilium": "#44AA99",
     "cilium-none": "#44AA99",
     "cilium-ipsec": "#88CCEE",
     "cilium-wireguard": "#DDCC77",

@@ -80,7 +80,6 @@ providers = ["kind", "k3s"]
 approaches = [
     "same-cluster",
     "load-balancer",
-    "cilium",
     "cilium-none",
     "cilium-ipsec",
     "cilium-wireguard"

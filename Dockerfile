@@ -72,7 +72,8 @@ RUN apt-get install -y \
     docker-ce-cli \
     containerd.io \
     docker-buildx-plugin \
-    docker-compose-plugin
+    docker-compose-plugin \
+    xxd
 
 RUN echo 'alias k=kubectl' >> /root/.bashrc && \
     echo 'alias ks="kubectl -n kube-system"' >> /root/.bashrc

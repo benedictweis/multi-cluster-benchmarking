@@ -38,7 +38,9 @@ def parse_nginx_wrk_benchmark(input: str) -> list[float]:
             parts = line.split()
             # Find the value and unit (e.g., 7.39ms)
             value_str = parts[1]
-            if value_str.endswith("ms"):
+            if value_str.endswith("us"):
+                values.append(float(value_str.replace("us", "")) / 1000)
+            elif value_str.endswith("ms"):
                 values.append(float(value_str.replace("ms", "")))
             elif value_str.endswith("s"):
                 values.append(float(value_str.replace("s", "")) * 1000)

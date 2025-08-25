@@ -72,6 +72,7 @@ def generate_box_plot(plot_info: any, plot_data: list, labels: list, output_file
 
     #plt.title(plot_info['plot_name'], fontsize=10)
     plt.xlabel(f'{plot_info['measurement']} [{plot_info['unit']}] ({plot_info['better']} is better)', fontsize=PLOT_FONTSIZE)
+    plt.xticks(fontsize=PLOT_FONTSIZE)
     plt.yticks(range(1, len(labels) + 1), labels, fontsize=PLOT_FONTSIZE)
 
     plt.gca().xaxis.grid(True, which='major', linestyle='-', linewidth=0.7, color='gray', alpha=0.5)
@@ -96,6 +97,7 @@ def generate_bar_chart(plot_info: any, plot_data: list, labels: list, output_fil
 
     #plt.title(plot_info['plot_name'], fontsize=10)
     plt.xlabel(f'{plot_info['measurement']} [{plot_info['unit']}] ({plot_info['better']} is better)', fontsize=PLOT_FONTSIZE)
+    plt.xticks(fontsize=PLOT_FONTSIZE)
     plt.yticks(fontsize=PLOT_FONTSIZE)
 
     plt.gca().xaxis.grid(True, which='major', linestyle='-', linewidth=0.7, color='gray', alpha=0.5)
@@ -126,7 +128,8 @@ def generate_line_plot(plot_info: any, plot_data: list[BenchmarkLineInfo], outpu
         xlabel = "Amount of Parallel Streams"
     plt.xlabel(xlabel, fontsize=PLOT_FONTSIZE)
     plt.ylabel(f'{plot_info['measurement']} [{plot_info['unit']}] ({plot_info['better']} is better)', fontsize=PLOT_FONTSIZE)
-    plt.legend(fontsize=PLOT_FONTSIZE, loc='upper left')
+    plt.xticks(fontsize=PLOT_FONTSIZE)
+    plt.legend(fontsize=PLOT_FONTSIZE, loc='best')
 
     plt.gca().xaxis.grid(True, which='major', linestyle='-', linewidth=0.7, color='gray', alpha=0.5)
     plt.gca().yaxis.grid(True, which='major', linestyle='-', linewidth=0.7, color='gray', alpha=0.5)

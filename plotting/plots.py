@@ -89,16 +89,23 @@ def generate_box_plot(plot_info: any, plot_data: list, labels: list, output_file
 def generate_bar_chart(plot_info: any, plot_data: list, labels: list, output_file: str):
     plot_data = plot_data[::-1]
     labels = labels[::-1]
+    bar_colors = [next((color_val for key, color_val in colors.items() if key in label), '#000000') for label in labels]   
     plt.figure(figsize=(10, 5))
-    bars = plt.barh(labels, plot_data, height=0.8)
-    for i, label in enumerate(labels):
-        color = next((color_val for key, color_val in colors.items() if key in label), '#000000')
-        bars[i].set_facecolor(color)
+    bars = plt.barh(labels, plot_data, height=0.8, color=bar_colors)
 
     #plt.title(plot_info['plot_name'], fontsize=10)
     plt.xlabel(f'{plot_info['measurement']} [{plot_info['unit']}] ({plot_info['better']} is better)', fontsize=PLOT_FONTSIZE)
+    labels = labels[::-1]
+    for i, label in enumerate(labels):
+        if i == 0:
+            continue
+        split_label = label.split(' ')
+        split_prev_label = labels[i-1].split(' ')
+        if split_label[0] == split_prev_label[0]:
+            labels[i] = split_label[1]
+    labels = labels[::-1]
     plt.xticks(fontsize=PLOT_FONTSIZE)
-    plt.yticks(fontsize=PLOT_FONTSIZE)
+    plt.yticks(ticks=range(len(labels)), labels=labels, fontsize=PLOT_FONTSIZE)
 
     plt.gca().xaxis.grid(True, which='major', linestyle='-', linewidth=0.7, color='gray', alpha=0.5)
     plt.gca().set_axisbelow(True)
@@ -138,8 +145,6 @@ def generate_line_plot(plot_info: any, plot_data: list[BenchmarkLineInfo], outpu
     max_y = max(max(line.y) for line in plot_data)
     if plot_info['lower_bound'] is not None and max_y < plot_info['upper_bound']:
         plt.ylim(plot_info['lower_bound'], plot_info['upper_bound'])
-    #else:
-    #    plt.yscale('log')
 
     plt.tight_layout(pad=1.0)
     plt.savefig(output_file, dpi=300)

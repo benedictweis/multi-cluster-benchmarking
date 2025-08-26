@@ -59,7 +59,7 @@ colors = {
 def generate_box_plot(plot_info: any, plot_data: list, labels: list, output_file: str):
     plot_data = plot_data[::-1]
     labels = labels[::-1]
-    plt.figure(figsize=(10, 5))
+    plt.figure(figsize=(10, 5/8*len(labels)))
     box = plt.boxplot(plot_data, vert=False, patch_artist=True, widths=0.8, showfliers=False)
     for i, label in enumerate(labels):
         color = next((color_val for key, color_val in colors.items() if key in label), '#000000')
@@ -90,7 +90,7 @@ def generate_bar_chart(plot_info: any, plot_data: list, labels: list, output_fil
     plot_data = plot_data[::-1]
     labels = labels[::-1]
     bar_colors = [next((color_val for key, color_val in colors.items() if key in label), '#000000') for label in labels]   
-    plt.figure(figsize=(10, 5))
+    plt.figure(figsize=(10, 5/16*len(labels)))
     bars = plt.barh(labels, plot_data, height=0.8, color=bar_colors)
 
     #plt.title(plot_info['plot_name'], fontsize=10)
@@ -287,6 +287,8 @@ def render_plots_without_payload_size(benchmark: str, data_points: list[Benchmar
         data_points_for_plot = []
         labels = []
         for approach in approaches:
+            if "udp" in benchmark and approach not in ["load-balancer", "same-cluster", "cilium-none", "cilium-ipsec", "cilium-wireguard"]:
+                continue
             if plot == "metrics-cpu":
                 for cluster in clusters:
                     possible_data_points = [dp.value for dp in data_points if dp.benchmark_type == benchmark and dp.approach == approach and dp.cluster == cluster and dp.data_type == plot]

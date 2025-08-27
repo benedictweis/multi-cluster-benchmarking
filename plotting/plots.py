@@ -28,6 +28,7 @@ markers = {
     "cilium-ipsec": "d",
     "cilium-wireguard": "+",
     "calico": "^",
+    "istio-ambient": "7",
     "istio": "v",
     "linkerd": "<",
     "nss": "P",
@@ -45,6 +46,7 @@ colors = {
     "cilium-ipsec": "#88CCEE",
     "cilium-wireguard": "#DDCC77",
     "calico": "#000000",
+    "istio-ambient": "#AA3377",
     "istio": "#CC6677",
     "linkerd": "#AA4499",
     "nss": "#000000",
@@ -59,7 +61,7 @@ colors = {
 def generate_box_plot(plot_info: any, plot_data: list, labels: list, output_file: str):
     plot_data = plot_data[::-1]
     labels = labels[::-1]
-    plt.figure(figsize=(10, 5/8*len(labels)))
+    plt.figure(figsize=(10, 5/8*len(labels)+0.8))
     box = plt.boxplot(plot_data, vert=False, patch_artist=True, widths=0.8, showfliers=False)
     for i, label in enumerate(labels):
         color = next((color_val for key, color_val in colors.items() if key in label), '#000000')
@@ -90,7 +92,7 @@ def generate_bar_chart(plot_info: any, plot_data: list, labels: list, output_fil
     plot_data = plot_data[::-1]
     labels = labels[::-1]
     bar_colors = [next((color_val for key, color_val in colors.items() if key in label), '#000000') for label in labels]   
-    plt.figure(figsize=(10, 5/16*len(labels)))
+    plt.figure(figsize=(10, 5/16*len(labels)+0.8))
     bars = plt.barh(labels, plot_data, height=0.8, color=bar_colors)
 
     #plt.title(plot_info['plot_name'], fontsize=10)
@@ -203,7 +205,7 @@ info = {
         "unit": "ms",
         "better": "lower",
         "lower_bound": 0,
-        "upper_bound": 3,
+        "upper_bound": 5,
     },
     "nginx-wrk": {
         "plot_name": "Nginx Wrk Benchmark",

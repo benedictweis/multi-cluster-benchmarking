@@ -86,6 +86,7 @@ approaches = [
     "cilium-ipsec",
     "cilium-wireguard",
     "calico",
+    "istio-ambient",
     "istio",
     "linkerd",
     "nss",

@@ -51,6 +51,7 @@
         --set=ipam.operator.clusterPoolIPv4PodCIDRList={{ pod_cidr }} \
         --set=ipam.mode=kubernetes \
         --set=operator.replicas=1 \
+        --set cni.exclusive=false \
         --kubeconfig /etc/rancher/k3s/k3s.yaml
   args:
     executable: /bin/bash

@@ -14,10 +14,12 @@ approachinfo "Uninstalling Cilium"
 helm upgrade --install --reset-values --version 1.18.1 -n kube-system cilium cilium/cilium \
         --set ipam.mode=kubernetes \
         --set operator.replicas=1 \
+        --set cni.exclusive=false \
         --kube-context "${CLUSTER_1_CONTEXT}" 
 helm upgrade --install --reset-values --version 1.18.1 -n kube-system cilium cilium/cilium \
         --set ipam.mode=kubernetes \
         --set operator.replicas=1 \
+        --set cni.exclusive=false \
         --kube-context "${CLUSTER_2_CONTEXT}"
 
 approachinfo "Deleting IPSec keys"

@@ -30,7 +30,8 @@ for CLUSTER_NAME in "${CLUSTER_1_NAME}" "${CLUSTER_2_NAME}"; do
         --set ipam.operator.clusterPoolIPv6PodCIDRList="{$IPAM_CIDR}" \
         --set routingMode=native \
         --set ipv6NativeRoutingCIDR="$IPAM_CIDR" \
-        --set enableIPv6Masquerade=false
+        --set enableIPv6Masquerade=false \
+        --set cni.exclusive=false 
 
     info "[$PROVIDER $CLUSTER_NAME] Waiting for Cilium to be ready"
     cilium status --wait

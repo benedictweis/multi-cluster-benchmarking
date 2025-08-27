@@ -41,6 +41,12 @@ if [[ $SET_NETWORK_PREFIX == "auto" ]]; then
         NETWORK_PREFIX_1=$(docker network inspect -f '{{(index .IPAM.Config 0).Gateway}}' kind)
         NETWORK_PREFIX_2=$(docker network inspect -f '{{(index .IPAM.Config 1).Gateway}}' kind)
 
+        if [[ -z "$NETWORK_PREFIX_1" && -n "$NETWORK_PREFIX_2" ]]; then
+            NETWORK_PREFIX_1="$NETWORK_PREFIX_2"
+        elif [[ -z "$NETWORK_PREFIX_2" && -n "$NETWORK_PREFIX_1" ]]; then
+            NETWORK_PREFIX_2="$NETWORK_PREFIX_1"
+        fi
+
         if [[ "$NETWORK_PREFIX_1" == *:* ]]; then
             NETWORK_PREFIX_1="$(echo "$NETWORK_PREFIX_1" | rev | cut -d ':' -f 2- | rev):"
         else

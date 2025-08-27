@@ -19,7 +19,8 @@ for CLUSTER_NAME in "${CLUSTER_1_NAME}" "${CLUSTER_2_NAME}"; do
     helm repo update
     helm upgrade --install --reset-values --version 1.18.1 -n kube-system cilium cilium/cilium \
         --set ipam.mode=kubernetes \
-        --set operator.replicas=1 
+        --set operator.replicas=1 \
+        --set cni.exclusive=false
 
     info "[$PROVIDER $CLUSTER_NAME] Waiting for Cilium to be ready"
     cilium status --wait

@@ -1,0 +1,48 @@
+# Basic settings, do not edit unless you know what you are doing
+providers_dir: "providers"
+approaches_dir: "approaches"
+benchmarks_dir: "benchmarks"
+results_dir: "results"
+kubeconfig_file: "kubeconfig.yaml"
+context_1_file: "context-1.txt"
+context_2_file: "context-2.txt"
+benchmark_custom_file: "benchmark.sh"
+cluster_1_name: "cluster-1"
+cluster_2_name: "cluster-2"
+resource_create_timeout: "100s"
+set_network_prefix: "auto"
+
+# Select the approaches and benchmarks to be used
+provider: "k3s"
+approaches:
+  - "istio"
+# Use benchmarks=[] to only setup the clusters with the approach selected
+benchmarks:
+  - "nginx-curl"
+# payload_sizes between 1 and 100MB tested, applies only to *-pld benchmarks, MB is not supported by iperf-tcp-pld
+payload_sizes:
+  - "16"
+  - "512"
+  - "1KB"
+  - "2KB"
+  - "4KB"
+  - "8KB"
+  - "16KB"
+  - "32KB"
+  - "64KB"
+  - "128KB"
+  - "1MB"
+  - "10MB"
+  - "100MB"
+  - "1000MB"
+iperf_parallel_streams:
+  - "1"
+  - "2"
+  - "4"
+  - "6"
+  - "8"
+  - "10"
+
+# Iterations for each benchmark, min is 10
+benchmarks_n: "10"
+wait_before_cleanup: true

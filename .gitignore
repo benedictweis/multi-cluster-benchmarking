@@ -335,3 +335,4 @@ kubeconfig*.yaml
 hosts.ini
 vars.yaml
 config.cfg
+plotting/*.json

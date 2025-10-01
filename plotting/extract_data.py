@@ -87,7 +87,7 @@ approaches = [
     "cilium-wireguard",
     "calico",
     "istio-ambient",
-    "istio",
+    "istio-sidecar",
     "linkerd",
     "nss",
     "kuma",

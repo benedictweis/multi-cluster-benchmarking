@@ -11,12 +11,12 @@ CLUSTER_1_CONTEXT=$(cat "../../$CONTEXT_1_FILE")
 CLUSTER_2_CONTEXT=$(cat "../../$CONTEXT_2_FILE")
 
 approachinfo "Uninstalling Cilium"
-helm upgrade --install --reset-values --version 1.18.1 -n kube-system cilium cilium/cilium \
+helm upgrade --install --reset-values --version 1.18.2 -n kube-system cilium cilium/cilium \
         --set ipam.mode=kubernetes \
         --set operator.replicas=1 \
         --set cni.exclusive=false \
         --kube-context "${CLUSTER_1_CONTEXT}" 
-helm upgrade --install --reset-values --version 1.18.1 -n kube-system cilium cilium/cilium \
+helm upgrade --install --reset-values --version 1.18.2 -n kube-system cilium cilium/cilium \
         --set ipam.mode=kubernetes \
         --set operator.replicas=1 \
         --set cni.exclusive=false \

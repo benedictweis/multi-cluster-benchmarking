@@ -10,29 +10,28 @@ source ../../helper.sh
 CLUSTER_1_CONTEXT=$(cat "../../$CONTEXT_1_FILE")
 CLUSTER_2_CONTEXT=$(cat "../../$CONTEXT_2_FILE")
 
-approachinfo "Preparing skupper installation"
-kubectl create namespace $BENCHMARK --context "$CLUSTER_1_CONTEXT" --dry-run=client -o yaml | kubectl apply --context "$CLUSTER_1_CONTEXT" -f -
-kubectl create namespace $BENCHMARK --context "$CLUSTER_2_CONTEXT" --dry-run=client -o yaml | kubectl apply --context "$CLUSTER_2_CONTEXT" -f -
-kubectl config set-context "$CLUSTER_1_CONTEXT" --namespace $BENCHMARK
-kubectl config set-context "$CLUSTER_2_CONTEXT" --namespace $BENCHMARK
+approachinfo "Setting namespaces for both clusters"
+kubectl config set-context --namespace=${BENCHMARK} ${CLUSTER_1_CONTEXT}
+kubectl config set-context --namespace=${BENCHMARK} ${CLUSTER_2_CONTEXT}
 
-approachinfo "Installing skupper"
-skupper init --context "$CLUSTER_1_CONTEXT"
-skupper init --context "$CLUSTER_2_CONTEXT"
+approachinfo "Creating skupper sites in both clusters"
+skupper site create ${CLUSTER_1_NAME} --enable-link-access --context ${CLUSTER_1_CONTEXT}
+skupper site create ${CLUSTER_2_NAME} --context ${CLUSTER_2_CONTEXT}
 
-approachinfo "Generating cluster tokens"
-CLUSTER_2_TOKEN_LOCATION=$(mktemp)
-skupper token create "$CLUSTER_2_TOKEN_LOCATION" --context "$CLUSTER_2_CONTEXT"
+approachinfo "Linking both clusters"
+SKUPPER_TOKEN_FILE="$(mktemp)"
+skupper token issue ${SKUPPER_TOKEN_FILE} --context ${CLUSTER_1_CONTEXT}
+skupper token redeem ${SKUPPER_TOKEN_FILE} --context ${CLUSTER_2_CONTEXT}
+skupper link status --context ${CLUSTER_1_CONTEXT}
+skupper link status --context ${CLUSTER_2_CONTEXT}
+rm -f ${SKUPPER_TOKEN_FILE}
 
-approachinfo "Linking clusters"
-skupper link create "$CLUSTER_2_TOKEN_LOCATION" --context "$CLUSTER_1_CONTEXT"
+approachinfo "Exposing benchmark server"
+skupper connector create ${BENCHMARK}-server ${PORT} --context ${CLUSTER_1_CONTEXT}
+skupper listener create ${BENCHMARK}-server ${PORT} --context ${CLUSTER_2_CONTEXT}
 
-approachinfo "Exposing $BENCHMARK-server"
-skupper expose deployment/$BENCHMARK-server --port $PORT --context "$CLUSTER_1_CONTEXT"
-
-kubectl config set-context "$CLUSTER_1_CONTEXT" --namespace=default
-kubectl config set-context "$CLUSTER_2_CONTEXT" --namespace=default
-
-rm "$CLUSTER_2_TOKEN_LOCATION"
+approachinfo "Unsetting namespaces for both clusters"
+kubectl config set-context --namespace=default ${CLUSTER_1_CONTEXT}
+kubectl config set-context --namespace=default ${CLUSTER_2_CONTEXT}
 
 export SERVER_ADDRESS="$BENCHMARK-server"

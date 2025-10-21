@@ -28,7 +28,7 @@ markers = {
     "cilium-ipsec": "d",
     "cilium-wireguard": "+",
     "calico": "^",
-    "istio-ambient": "7",
+    "istio-ambient": "*",
     "istio-sidecar": "v",
     "linkerd": "<",
     "nss": "P",

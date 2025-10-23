@@ -12,14 +12,22 @@ This requires docker to be installed on your system!
 
 ## Results
 
-![Comparison of TCP Throughput](./plots/iperf-tcp-benchmark.svg)
-![Comparison of TCP Throughput with different amount of parallel streams](./plots/iperf-tcp-par-comparison.svg)
-![Comparison of TCP Throughput with different payload sizes](./plots/iperf-tcp-pld-comparison.svg)
+![Benchmarks done](./assets/benchmarks.svg)
 
-![Comparison of UDP Throughput](./plots/iperf-udp-benchmark.svg)
+The benchmark results are presented in the order of the table.
 
-![Comparison of HTTP Latency for single requests](./plots/nginx-curl-benchmark.svg)
-![Comparison of HTTP Latency for single requests with different payload sizes](./plots/nginx-curl-pld-comparison.svg)
+![Comparison of TCP Throughput](./assets/iperf-tcp-benchmark.svg)
+![Comparison of TCP Throughput with different amount of parallel streams](./assets/iperf-tcp-par-comparison.svg)
+![Comparison of TCP Throughput with different payload sizes](./assets/iperf-tcp-pld-comparison.svg)
 
-![Comparison of HTTP Latency for many requests](./plots/nginx-wrk-benchmark.svg)
-![Comparison of HTTP Latency for many requests with different payload sizes](./plots/nginx-wrk-pld-comparison.svg)
+![Comparison of UDP Throughput](./assets/iperf-udp-benchmark.svg)
+
+![Comparison of HTTP Latency for single requests](./assets/nginx-curl-benchmark.svg)
+![Comparison of HTTP Latency for single requests with different payload sizes](./assets/nginx-curl-pld-comparison.svg)
+
+![Comparison of HTTP Latency for many requests](./assets/nginx-wrk-benchmark.svg)
+![Comparison of HTTP Latency for many requests with different payload sizes](./assets/nginx-wrk-pld-comparison.svg)
+
+![Instance settings](./assets/settings.svg)
+
+Instance-1 and Instance-2 are two ec2 instances running in the same placement group, subnet, VPC and region on AWS.

@@ -22,4 +22,4 @@ This requires docker to be installed on your system!
 ![Comparison of HTTP Latency for single requests with different payload sizes](./plots/nginx-curl-pld-comparison.svg)
 
 ![Comparison of HTTP Latency for many requests](./plots/nginx-wrk-benchmark.svg)
-![Comparison of HTTP Latency for many requests with different payload sizes](./plots/nginx-curl-pld-comparison.svg)
+![Comparison of HTTP Latency for many requests with different payload sizes](./plots/nginx-wrk-pld-comparison.svg)

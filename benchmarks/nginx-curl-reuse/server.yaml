@@ -1,0 +1,18 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-curl-reuse-server
+  namespace: nginx-curl-reuse
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx-curl-reuse-server
+  template:
+    metadata:
+      labels:
+        app: nginx-curl-reuse-server
+    spec:
+      containers:
+        - name: nginx-curl-reuse-server
+          image: nginx:latest

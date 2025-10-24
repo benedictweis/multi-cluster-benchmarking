@@ -1,0 +1,30 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: nginx-curl-reuse-client
+  namespace: nginx-curl-reuse
+spec:
+  template:
+    metadata:
+      labels:
+        app: nginx-curl-reuse-client
+    spec:
+      containers:
+        - name: nginx-curl-reuse-client
+          image: curlimages/curl
+          command:
+            - "/bin/sh"
+            - "-c"
+            - >
+              sleep 10;
+              for i in $(seq 1 ${BENCHMARKS_N}); do
+                echo -n "Request ${DOLLAR}i: ";
+                curl -o /dev/null --silent --show-error --fail \
+                  -w "time_total=%{time_total}s\n" \
+                  -H "Cache-Control: no-cache" \
+                  --http1.1 \
+                  http://${SERVER_ADDRESS}:80
+                sleep 1;
+              done
+      restartPolicy: Never
+  backoffLimit: 4

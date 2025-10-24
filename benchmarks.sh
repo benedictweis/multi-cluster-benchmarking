@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-# Dependency specification
-
 set -o errexit
 set -o nounset
 if [[ "${TRACE-0}" == "1" ]]; then set -o xtrace; fi

@@ -1,0 +1,18 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-wrk-small-server
+  namespace: nginx-wrk-small
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx-wrk-small-server
+  template:
+    metadata:
+      labels:
+        app: nginx-wrk-small-server
+    spec:
+      containers:
+        - name: nginx-wrk-small-server
+          image: nginx:latest

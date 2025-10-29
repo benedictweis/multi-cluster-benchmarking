@@ -1,0 +1,24 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: nginx-wrk-small-client
+  namespace: nginx-wrk-small
+spec:
+  template:
+    metadata:
+      labels:
+        app: nginx-wrk-small-client
+    spec:
+      containers:
+        - name: nginx-wrk-small-client
+          image: openeuler/wrk
+          command:
+            - "/bin/sh"
+            - "-c"
+            - >
+              sleep 10;
+              for i in $(seq 1 ${BENCHMARKS_N_DIV_10}); do
+                  wrk -t1 -c1 -d10s http://${SERVER_ADDRESS}:80;
+                  sleep 1;
+              done
+      restartPolicy: Never

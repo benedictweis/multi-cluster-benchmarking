@@ -207,6 +207,14 @@ info = {
         "lower_bound": 0,
         "upper_bound": 10,
     },
+    "nginx-wrk-small": {
+        "plot_name": "Nginx Wrk Benchmark",
+        "measurement": "Latency",
+        "unit": "ms",
+        "better": "lower",
+        "lower_bound": 0,
+        "upper_bound": 1,
+    },
     "nginx-wrk": {
         "plot_name": "Nginx Wrk Benchmark",
         "measurement": "Latency",

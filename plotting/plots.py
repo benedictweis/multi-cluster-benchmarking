@@ -199,14 +199,6 @@ plots = [
 ]
 
 info = {
-    "nginx-curl-reuse": {
-        "plot_name": "Nginx Curl Benchmark",
-        "measurement": "Round Trip Time (RTT)",
-        "unit": "ms",
-        "better": "lower",
-        "lower_bound": 0,
-        "upper_bound": 10,
-    },
     "nginx-curl": {
         "plot_name": "Nginx Curl Benchmark",
         "measurement": "Round Trip Time (RTT)",

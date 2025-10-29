@@ -101,7 +101,6 @@ clusters = ["cluster-1", "cluster-2", "client"]
 
 benchmarks = [
     "nginx-curl-pld",
-    "nginx-curl-reuse",
     "nginx-curl",
     "nginx-wrk-pld",
     "nginx-wrk",
@@ -119,7 +118,6 @@ data_types = [
 
 benchmark_type_parser_map: dict[str, Callable[[str], list[float]]] = {
     "nginx-curl-pld": parse_nginx_curl_benchmark,
-    "nginx-curl-reuse": parse_nginx_curl_benchmark,
     "nginx-curl": parse_nginx_curl_benchmark,
     "nginx-wrk-pld": parse_nginx_wrk_benchmark,
     "nginx-wrk": parse_nginx_wrk_benchmark,
